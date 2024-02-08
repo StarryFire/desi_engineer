@@ -1,0 +1,15 @@
+package component
+
+import "github.com/starryfire/desi_engineer/config/projectconfig"
+import "github.com/starryfire/desi_engineer/config/projectconstant"
+import "github.com/labstack/echo/v4"
+
+templ ServerError(eCtx echo.Context, message string) {
+	<div>
+		<h1>500</h1>
+		<p>Internal Server Error</p>
+		if projectconfig.ENV == projectconstant.ENV_DEV {
+			<p>{ message }</p>
+		}
+	</div>
+}

@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: default # A uniquely identifiable name for the provider
+    allowUiUpdates: false
+    disableDeletion: true
+    folder: ''
+    type: file
+    # updateIntervalSeconds: 10
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

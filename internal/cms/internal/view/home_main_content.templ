@@ -1,0 +1,34 @@
+package view
+
+import "github.com/starryfire/desi_engineer/internal/component"
+
+type HomeMainContentProps struct {
+	Posts          []HomePostProps
+	TotalPages     int
+	CurrentPage    int
+	PaginationSize int // should be odd number
+}
+
+templ HomeMainContent(props HomeMainContentProps) {
+	<div class="flex flex-wrap gap-4">
+		<div class="flex-auto w-[900px]">
+			<main>
+				<ul class="list-none">
+					for _, postProp := range props.Posts {
+						<li class="py-4 first:pt-0 border-b-[1px] border-b-c-neutral-text last:border-none ">
+							@homepost(postProp)
+						</li>
+					}
+				</ul>
+			</main>
+			@component.Pagination(component.PaginationProps{
+				TotalPages:     props.TotalPages,
+				CurrentPage:    props.CurrentPage,
+				PaginationSize: props.PaginationSize,
+			})
+		</div>
+		<div class="flex-auto w-[400px]">
+			@component.Author(component.AuthorProps{})
+		</div>
+	</div>
+}

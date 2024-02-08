@@ -1,0 +1,17 @@
+package component
+
+type TagListProps struct {
+	Tags []string
+}
+
+templ TagList(props TagListProps) {
+	if len(props.Tags) > 0 {
+		<ul class="list-none flex text-c-primary-tag">
+			for _, tag := range props.Tags {
+				<li class="text-xs mr-1 last:mr-0">
+					#{ tag }
+				</li>
+			}
+		</ul>
+	}
+}

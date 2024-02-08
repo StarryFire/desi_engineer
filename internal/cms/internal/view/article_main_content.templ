@@ -1,0 +1,28 @@
+package view
+
+import "github.com/starryfire/desi_engineer/internal/component"
+import "github.com/starryfire/desi_engineer/config/projectconstant"
+import "github.com/starryfire/desi_engineer/internal/datatype"
+import "github.com/starryfire/desi_engineer/internal/templutil"
+
+type ArticleMainContentProps struct {
+	Title       string
+	Tags        []string
+	PublishedAt datatype.ArticleTime
+	FilePath    string
+	IsDraft     bool
+}
+
+templ ArticleMainContent(props ArticleMainContentProps) {
+	<main class="mb-4">
+		<div class="mb-2">
+			<p class="text-xs text-c-primary-tag">{ props.PublishedAt.Format(projectconstant.DATE_FORMAT) }</p>
+			<h1>{ props.Title }</h1>
+			@component.TagList(component.TagListProps{Tags: props.Tags})
+		</div>
+		<div class="article">
+			@component.MarkdownViewer(templutil.GetEchoContext(ctx), props.FilePath)
+		</div>
+	</main>
+	@component.Author(component.AuthorProps{})
+}

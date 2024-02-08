@@ -1,0 +1,33 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+__debug_bin*
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Custom
+/bin/
+/tmp/
+NOTES.md
+# ignore all files inside secrets/ except *.example.yaml
+/secrets/**
+!/secrets/**/*.example.yaml
+
+# ignore contents of all the direct subfolders of deployment/secrets/ (except .gitkeep)
+deployment/secrets/*/**
+
+# ignore contents of all the direct subfolders of deployment/services/**/data/ (except .gitkeep)
+deployment/services/**/data/*/**
+
+# ignore everything inside assets/**/prod/ (except .gitkeep)
+assets/**/prod/**
+
+# Never ignore .gitkeep no matter where it is in the hierarchy
+!.gitkeep

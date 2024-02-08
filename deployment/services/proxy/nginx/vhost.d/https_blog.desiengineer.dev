@@ -1,0 +1,48 @@
+############### Enables GZIP Compress ###############
+# doesn't work well for already compressed files like jpeg or png
+gzip on;
+# Sends a Vary: Accept-Encoding header to inform the client that it needs to send a different request to get a gzipped version of the file.
+gzip_vary on;
+# Only compress files larger than 1024 bytes. Smaller files cannot be compressed much.
+gzip_min_length 1024;
+# Compress data even for users connected via proxies.
+gzip_proxied expired no-cache no-store private auth;
+
+# Specifies the file types to be compressed.
+gzip_types
+text/javascript application/javascript application/x-javascript
+image/svg+xml
+font/ttf application/x-font-truetype
+text/plain text/css text/xml application/json application/xml application/xml+rss;
+
+# Disables GZIP compression for IE browser versions 1-6, since they do not support GZIP compression
+gzip_disable "MSIE [1-6]\.";
+#####################################################################################################################################################################
+location ^~ /.well-known/acme-challenge/ {
+    auth_basic off;
+    auth_request off;
+    allow all;
+    root /usr/share/nginx/html;
+    try_files $uri =404;
+    break;
+}
+#####################################################################################################################################################################
+
+#####################################################################################################################################################################
+# NOTE: When using nginx-proxy/nginx-proxy, the upstream name of the container is: ${VIRTUAL_HOST_HASH}-${VIRTUAL_PATH_HASH}
+# HASH can be calculated using: echo -n "/" | sha1sum | awk '{ print $1 }'
+# Here,
+# blog.desiengineer.dev = e8f6824e5e463840e8c5e3c9012f8e104bff25c4
+# / = 42099b4af021e53fd8fd4e056c2568d7c2e3ffa8
+#####################################################################################################################################################################
+
+# Media: images, icons, video, audio, HTC, fonts, css, js
+location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|ttf|css|js)$ {
+    expires 365d; # This is equivalent to adding max-age in cache-control like this: Cache-Control "..., max-age=86400"
+    add_header Cache-Control "public";
+    proxy_pass http://e8f6824e5e463840e8c5e3c9012f8e104bff25c4-42099b4af021e53fd8fd4e056c2568d7c2e3ffa8;
+}
+#####################################################################################################################################################################
+location / {
+    proxy_pass http://e8f6824e5e463840e8c5e3c9012f8e104bff25c4-42099b4af021e53fd8fd4e056c2568d7c2e3ffa8;
+}

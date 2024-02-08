@@ -1,0 +1,18 @@
+version: "3"
+networks:
+  public-1:
+    name: public-1
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.24.0.0/16"
+          gateway: "172.24.0.1"
+  private-1:
+    name: private-1
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.25.0.0/16"
+          gateway: "172.25.0.1"

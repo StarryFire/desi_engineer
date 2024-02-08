@@ -1,0 +1,156 @@
+---
+- name: Configure server
+  hosts: servers
+  # vars_files: "{{ secrets_path }}/ansible/tailscale.yaml"
+  tasks:
+    # - name: Start nginx service
+    #   become: true
+    #   ansible.builtin.service:
+    #     name: nginx
+    #     state: started
+    #     enabled: true
+
+    # - name: Create certbot certificates and auto-renew cronjob
+    #   become: true
+    #   ansible.builtin.command:
+    #     # Add --staging for testing
+    #     cmd: >
+    #       certbot certonly -n
+    #       --nginx --email desiengineer.dev@gmail.com
+    #       -d desiengineer.dev -d www.desiengineer.dev
+    #       --no-eff-email --agree-tos
+    #     creates: /etc/letsencrypt/live/desiengineer.dev/fullchain.pem
+    # - name: Setup tailscale
+    #   become: true
+    #   block:
+    #     - name: Start tailscale service
+    #       ansible.builtin.service:
+    #         name: tailscaled
+    #         state: started
+    #         enabled: true
+    #     # Make sure to disable key expiry for the server: https://tailscale.com/kb/1028/key-expiry
+    #     # Make sure to remove in case you disconnect from tailscale: /var/lib/tailscale/tailscaled.state
+    #     - name: Connect to tailscale
+    #       # no_log: true
+    #       ansible.builtin.command:
+    #         cmd: tailscale up --authkey {{ tailscale_auth_key }} --hostname {{ tailscale_hostname }}
+    #         creates: /var/lib/tailscale/tailscaled.state
+
+    - name: Setup docker
+      become: true
+      block:
+        - name: Start docker service
+          ansible.builtin.service:
+            name: docker
+            state: started
+            enabled: true
+        - name: Add user to docker group
+          ansible.builtin.user:
+            name: "{{ ansible_user }}"
+            groups: docker
+            append: true
+
+    - name: Setup git
+      block:
+        - name: Setup git ssh key and config
+          ansible.builtin.copy:
+            src: "{{ item.src }}"
+            dest: "{{ item.dest }}"
+            mode: "600"
+            force: true
+          loop:
+            - src: "{{ secrets_path }}/github/key_ed25519"
+              dest: ~/.ssh/github_key_ed25519
+            - src: "{{ configs_path }}/ssh/config"
+              dest: ~/.ssh/config
+        - name: Set github configuration
+          ansible.builtin.copy:
+            src: "{{ configs_path }}/github/config"
+            dest: ~/.gitconfig
+            mode: "664"
+            force: true
+
+    - name: Setup crontab
+      become: true
+      block:
+        - name: Start crontab service
+          ansible.builtin.service:
+            name: crond
+            state: started
+            enabled: true
+
+    # does git pull to fetch the latest code or clones the repo if it doesn't exist
+    # - name: Setup codebase
+    #   block:
+    #     - name: Clone codebase # noqa: command-instead-of-module
+    #       ansible.builtin.command:
+    #         cmd: git clone git@github.com:StarryFire/desi_engineer.git ~/desi_engineer
+    #         creates: ~/desi_engineer
+    #     - name: Pull latest code # noqa: command-instead-of-module
+    #       ansible.builtin.command:
+    #         cmd: git pull origin main
+    #         chdir: ~/desi_engineer
+    #       register: command_output
+    #       changed_when: command_output.stdout_lines[-1] == "Changes detected in the remote repository..."
+    #     - name: Debug
+    #       ansible.builtin.debug:
+    #         msg: "{{ command_output }}"
+
+    # simply clone the repo
+    - name: Setup codebase
+      block:
+        - name: Clone latest codebase
+          ansible.builtin.git:
+            repo: git@github.com:StarryFire/desi_engineer.git
+            dest: ~/desi_engineer
+            version: main
+            update: true
+
+    - name: Copy secrets
+      ansible.builtin.include_tasks: ./copy_secrets.yaml
+
+    - name: Setup cronjobs
+      block:
+        - name: Setup deploy on reboot cronjob
+          ansible.builtin.cron:
+            name: Deploy latest code on every reboot
+            special_time: reboot
+            job: "cd ~/desi_engineer && deploy -f true"
+
+    - name: Set ~/.bash_custom
+      ansible.builtin.copy:
+        src: "{{ configs_path }}/ansible_push/.bash_custom"
+        dest: ~/.bash_custom
+        mode: u=rw,g=r,o=r
+        force: true
+    - name: Set ~/.bash_login
+      ansible.builtin.copy:
+        src: "{{ configs_path }}/ansible_push/.bash_login"
+        dest: ~/.profile
+        mode: u=rw,g=r,o=r
+        force: true
+
+    - name: Append entry point for .bash_custom to .bashrc
+      ansible.builtin.lineinfile:
+        path: ~/.bashrc
+        line: "source ~/.bash_custom"
+        insertafter: EOF
+
+    - name: Append entry point for .bash_login to .bash_profile
+      ansible.builtin.lineinfile:
+        path: ~/.bash_profile
+        line: "source ~/.bash_login"
+        insertafter: EOF
+# - name: Setup ansible
+#   hosts: servers
+#   tasks:
+#     - name: Setup config
+#       ansible.builtin.copy:
+#         src: "{{ configs_path }}/ansible_pull/ansible.cfg"
+#         dest: "~/.ansible.cfg"
+#         mode: "600"
+#     - name: Setup reboot cronjob
+#       ansible.builtin.cron:
+#         name: Runs ansible-pull on every reboot
+#         special_time: reboot
+#         job: "{{ deploy_command }}"

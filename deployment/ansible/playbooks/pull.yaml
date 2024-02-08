@@ -1,0 +1,9 @@
+---
+- name: Deploy
+  hosts: localhost
+  tasks:
+    - name: Deploy
+      ansible.builtin.command:
+        cmd: docker_compose_up
+        chdir: ~/desi_engineer
+      changed_when: true

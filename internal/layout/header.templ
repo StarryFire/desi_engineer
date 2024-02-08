@@ -1,0 +1,19 @@
+package layout 
+
+import "github.com/starryfire/desi_engineer/internal/templutil"
+import "github.com/starryfire/desi_engineer/config/projectconstant"
+import "github.com/starryfire/desi_engineer/internal/component"
+
+templ Header() {
+	<a
+		href={ templ.URL(templutil.GetEchoReverseURL(ctx, projectconstant.HOME_PAGE_ROUTE_NAME)) }
+		title="go to home page"
+		class="w-fit block mb-8 text-c-neutral-text hover:text-c-primary-text"
+	>
+		@component.DesiEngineerLogo(
+			component.DesiEngineerLogoProps{ 
+				Class: "w-[50vw]  max-w-[479px]",
+			},
+		)
+	</a>
+}

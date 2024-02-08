@@ -1,0 +1,32 @@
+package view
+
+import "strings"
+import "github.com/starryfire/desi_engineer/internal/component"
+import "github.com/starryfire/desi_engineer/internal/templutil"
+import "github.com/starryfire/desi_engineer/config/projectconstant"
+import "github.com/starryfire/desi_engineer/internal/datatype"
+import "fmt"
+
+type HomePostProps struct {
+	Slug datatype.ArticleSlug
+	datatype.ArticleRecord
+}
+
+templ homepost(props HomePostProps) {
+	<p class="text-xs">{ props.Date.Format(projectconstant.DATE_FORMAT) }</p>
+	<h4
+		class="text-c-primary-text block
+	hover:underline underline-offset-1 decoration-dashed decoration-c-primary-text decoration-2"
+	>
+		<a
+			href={ templ.URL(templutil.GetEchoReverseURL(ctx, projectconstant.ARTICLE_PAGE_ROUTE_NAME, props.Slug.URLSlug())) }
+			title={ fmt.Sprintf("go to article: %s", props.Title) }
+		>
+			{ strings.ToUpper(props.Title) }
+		</a>
+	</h4>
+	<p>{ props.Description }</p>
+	@component.TagList(component.TagListProps{
+		Tags: props.Tags,
+	})
+}

@@ -1,0 +1,36 @@
+# These commands are run everytime a new bash shell is started
+
+DESI_ENGINEER_DIR=~/desi_engineer
+
+_reset_aliases_if_needed() {
+    case $OLDPWD in
+        $DESI_ENGINEER_DIR)
+            echo "resetting desi_engineer aliases"
+            # in /bin/bash OLDPWD is not set to current directory when we reset the shell using exec $SHELL
+            OLDPWD=$PWD
+            # no command can be run after this since we are essentially replacing the current shell with the new shell
+            # Note: Don't use $SHELL -l as that will trigger the login shell which in turn triggers ~/.$SHELL_profile commands
+            exec $SHELL
+            # echo "hello" # this will not be executed
+        ;;
+    esac
+}
+_maintain_aliases() {
+    case $PWD in
+        $DESI_ENGINEER_DIR)
+            source deployment/scripts/aliases/global.sh
+            load_all_aliases
+            _enable_run_autocompletion
+            echo "desi_engineer aliases loaded"
+        ;;
+        *)
+            _reset_aliases_if_needed
+        ;;
+    esac
+}
+cd() {
+    builtin cd "$@"
+    _maintain_aliases
+}
+
+_maintain_aliases

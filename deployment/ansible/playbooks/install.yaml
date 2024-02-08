@@ -1,0 +1,140 @@
+---
+- name: Install dependencies
+  hosts: servers
+  become: true
+  gather_facts: true
+  tasks:
+    # - name: Install tailscale
+    #   block:
+    #     - name: Install yum-utils if missing
+    #       ansible.builtin.yum:
+    #         name: yum-utils
+    #         state: present
+
+    #     # You can remote the repo by running: sudo rm -f /etc/yum.repos.d/your_repo.repo
+    #     # Just copy the contents of the repo file into this configuration:  https://pkgs.tailscale.com/stable/amazon-linux/2023/tailscale.repo
+    #     # To list all the installed repos in yum: yum repolist
+    #     - name: Add the tailscale repository
+    #       ansible.builtin.yum_repository:
+    #         name: tailscale-stable
+    #         description: Tailscale stable
+    #         baseurl: https://pkgs.tailscale.com/stable/amazon-linux/2023/$basearch
+    #         enabled: true
+    #         gpgcheck: false
+    #         repo_gpgcheck: true
+    #         gpgkey: https://pkgs.tailscale.com/stable/amazon-linux/2023/repo.gpg
+
+    - name: Install dnf dependencies
+      ansible.builtin.dnf:
+        name:
+          - make
+          - docker
+          - git
+          - cronie
+          # - tailscale
+          # - python3.9
+          # - python3.9-pip
+          # - nginx
+          # - certbot
+          # - python-certbot-nginx
+        state: present
+        update_cache: true
+    - name: Clean unneeded dnf dependencies
+      ansible.builtin.dnf:
+        state: absent
+        autoremove: true
+
+    - name: Ensure ~/.docker/cli-plugins directory exists
+      ansible.builtin.file:
+        path: ~/.docker/cli-plugins
+        state: directory
+        mode: "700"
+
+    - name: Install docker-compose
+      block:
+        - name: Install x86_64 based docker-compose
+          when: ansible_architecture == "x86_64"
+          ansible.builtin.get_url:
+            url: "{{ item.url }}"
+            dest: "{{ item.dest }}"
+            mode: "{{ item.mode }}"
+          loop:
+            - url: "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-x86_64"
+              dest: ~/.docker/cli-plugins/docker-compose
+              mode: "+x"
+        - name: Install aarch64 based docker-compose
+          when: ansible_architecture == "aarch64"
+          ansible.builtin.get_url:
+            url: "{{ item.url }}"
+            dest: "{{ item.dest }}"
+            mode: "{{ item.mode }}"
+          loop:
+            - url: "https://github.com/docker/compose/releases/download/v2.24.3/docker-compose-linux-aarch64"
+              dest: ~/.docker/cli-plugins/docker-compose
+              mode: "+x"
+
+    # - name: Ensure ~/.local/bin directory exists
+    #   ansible.builtin.file:
+    #     path: ~/.local/bin
+    #     state: directory
+    #     mode: "700"
+    # - name: Install dependencies via pip
+    #   ansible.builtin.pip:
+    #     name:
+    #       - ansible
+    #       - docker
+    #       - docker-compose
+    #     executable: pip3.9
+    #     state: present
+
+    # - name: Ensure ~/ansible directory exists
+    #   ansible.builtin.file:
+    #     path: ~/ansible
+    #     state: directory
+    #     mode: "700"
+
+    # - name: Copy ansible required_collections.yaml
+    #   block:
+    #     - name: Get hash of required_collections.yaml before copying
+    #       ansible.builtin.stat:
+    #         path: ~/ansible/required_collections.yaml
+    #         get_checksum: true
+    #       register: required_collections_before
+    #     - name: Copy required_collections.yaml
+    #       ansible.builtin.copy:
+    #         src: "{{ configs_path }}/ansible_push/required_collections.yaml"
+    #         dest: ~/ansible/required_collections.yaml
+    #         mode: "600"
+    #     - name: Get hash of required_collections.yaml after copying
+    #       ansible.builtin.stat:
+    #         path: ~/ansible/required_collections.yaml
+    #         get_checksum: true
+    #       register: required_collections_after
+    #     - name: Debug
+    #       ansible.builtin.debug:
+    #         msg:
+    #           - "old_checksum: {{ required_collections_before.stat.checksum | default('') }}"
+    #           - "new_checksum: {{ required_collections_after.stat.checksum }}"
+
+    # - name: Install ansible collections
+    #   when: required_collections_before.stat.checksum | default('') != required_collections_after.stat.checksum
+    #   block:
+    #     - name: Install ansible collections
+    #       ansible.builtin.shell: |
+    #         set -o pipefail
+    #         checksum_before=$(md5sum ~/ansible/installed_collections.txt | awk '{ print $1 }')
+    #         ansible-galaxy collection install -r ~/ansible/required_collections.yaml
+    #         ansible-galaxy collection list > ~/ansible/installed_collections.txt
+    #         checksum_after=$(md5sum ~/ansible/installed_collections.txt | awk '{ print $1 }')
+    #         echo "old_checksum: $checksum_before"
+    #         echo "new_checksum: $checksum_after"
+    #         if [ "$checksum_before" != "$checksum_after" ]; then
+    #           echo "changed"
+    #         else
+    #           echo "not changed"
+    #         fi
+    #       register: shell_output
+    #       changed_when: shell_output.stdout_lines[-1] == "changed"
+    #     - name: Debug
+    #       ansible.builtin.debug:
+    #         msg: "{{ shell_output.stdout_lines }}"

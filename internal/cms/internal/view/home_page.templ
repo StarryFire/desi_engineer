@@ -1,0 +1,76 @@
+package view
+
+import "github.com/starryfire/desi_engineer/internal/layout"
+import "github.com/starryfire/desi_engineer/config/projectconstant"
+import "github.com/starryfire/desi_engineer/internal/templutil"
+import "fmt"
+import "github.com/starryfire/desi_engineer/internal/util"
+import "github.com/starryfire/desi_engineer/config/cmsconfig"
+
+type HomePageProps struct {
+	HomeMainContentProps
+}
+
+templ HomeSEOMetaTags(title string, description string, ) {
+	<title>{ title }</title>
+	<meta name="title" content={ description }/>
+	<meta name="description" content={ description }/>
+	<link
+		href={ util.GetFullURL(templutil.GetEchoReverseURL(ctx, projectconstant.HOME_PAGE_ROUTE_NAME)) }
+		rel="canonical"
+	/>
+}
+
+templ HomeSocialMediaMetaTags(title string, description string) {
+	<!-- 
+	Open Graph Meta tags are designed to promote integration between Facebook, LinkedIn, Google and the website URLs that you shared on these platforms.
+	-->
+	<meta property="og:type" content="article"/>
+	<meta property="og:title" content={ title }/>
+	<meta property="og:description" content={ description }/>
+	<meta
+		property="og:image"
+		content={ util.GetFullURL(fmt.Sprintf(
+			"%s?media_type=og",
+			templutil.GetEchoReverseURL(ctx, projectconstant.SOCIAL_MEDIA_POST_IMAGE_ROUTE_NAME), 
+			)) }
+	/>
+	<meta
+		property="og:url"
+		content={ util.GetFullURL(fmt.Sprintf(
+		templutil.GetEchoReverseURL(ctx, projectconstant.HOME_PAGE_ROUTE_NAME),
+		)) }
+	/>
+	<meta property="og:site_name" content="desi_engineer"/>
+	<!--
+	Twitter cards work in a similar way to Open Graph, except you add these special Meta tags only for Twitter. 
+	Twitter will use these tags to enhance the display of your page when shared on their platform.
+	-->
+	<meta name="twitter:title" content={ title }/>
+	<meta name="twitter:description" content={ description }/>
+	<meta
+		name="twitter:image"
+		content={ util.GetFullURL(fmt.Sprintf(
+			"%s?media_type=twitter",
+			templutil.GetEchoReverseURL(ctx, projectconstant.SOCIAL_MEDIA_POST_IMAGE_ROUTE_NAME), 
+			)) }
+	/>
+	<!-- twitter username of website -->
+	<meta name="twitter:site" content="@_desiengineer"/>
+	<!-- twitter username of the author who wrote the article on the website -->
+	<meta name="twitter:creator" content="@_desiengineer"/>
+	<meta property="twitter:card" content="summary_large_image"/>
+}
+
+templ HomeMetaTags(title string, description string) {
+	@HomeSEOMetaTags(title, description)
+	@HomeSocialMediaMetaTags(title, description)
+}
+
+templ HomePage(props HomePageProps) {
+	@layout.Base(layout.BaseProps{
+		Main: HomeMainContent(props.HomeMainContentProps),
+		Header: layout.Header(),
+		ExtraMetaTags: HomeMetaTags(cmsconfig.HOME_PAGE_TITLE, cmsconfig.HOME_PAGE_DESCRIPTION),
+	})
+}

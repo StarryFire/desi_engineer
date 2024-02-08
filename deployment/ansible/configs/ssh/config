@@ -1,0 +1,4 @@
+Host github.com
+  # so that git doesn't prompt for host fingerprint verification
+  StrictHostKeyChecking no
+  IdentityFile ~/.ssh/github_key_ed25519

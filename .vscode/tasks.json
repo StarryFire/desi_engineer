@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Generate HTML",
+      "type": "shell",
+      "command": "templ generate",
+      "presentation": {
+        "reveal": "silent",
+        "close": true,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "Generate CSS",
+      "type": "shell",
+      "command": "./bin/tailwindcss -i assets/css/dev/input.css -o ./assets/css/dev/output.css",
+      "presentation": {
+        "reveal": "silent",
+        "close": true,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "Build",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Generate HTML", "Generate CSS"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

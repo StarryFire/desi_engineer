@@ -1,0 +1,55 @@
+package component
+
+import "strconv"
+import "github.com/starryfire/desi_engineer/assets/icon"
+import "github.com/starryfire/desi_engineer/internal/viewutil"
+import "github.com/starryfire/desi_engineer/internal/templutil"
+import "fmt"
+
+type PaginationProps struct {
+	CurrentPage    int
+	TotalPages     int
+	PaginationSize int
+}
+
+templ Pagination(props PaginationProps) {
+	if props.TotalPages > 1 {
+		<nav class="mt-4 mb-4 flex justify-center items-center">
+			<a
+				href={ templ.URL(viewutil.GetPaginationIndexURL(templutil.GetEchoContext(ctx), props.CurrentPage-1)) }
+				title="go to previous page"
+				class={ templ.KV("invisible", props.CurrentPage == 1),
+				"mr-1", "p-1", 
+				"border-[1px]", "border-c-neutral-text", "rounded", "hover:border-c-primary-text",
+				"text-c-neutral-text", "hover:bg-c-primary-text" }
+			>
+				@icon.ChevronLeft(icon.ChevronLeftProps{
+					Class: "w-2",
+				})
+			</a>
+			for _, index := range viewutil.GetPaginationIndices(props.CurrentPage, props.TotalPages, props.PaginationSize) {
+				<a
+					href={ templ.URL(viewutil.GetPaginationIndexURL(templutil.GetEchoContext(ctx), index)) }
+					title={ fmt.Sprintf("go to page %s", strconv.Itoa(index)) }
+					class={
+						templ.KV("bg-c-neutral-text text-c-neutral-950 rounded pointer-events-none", props.CurrentPage == index),
+						"p-1",
+						"hover:text-c-primary-text",
+					}
+				>{ strconv.Itoa(index) }</a>
+			}
+			<a
+				href={ templ.URL(viewutil.GetPaginationIndexURL(templutil.GetEchoContext(ctx), props.CurrentPage+1)) }
+				title="go to next page"
+				class={ templ.KV("invisible", props.CurrentPage == props.TotalPages),
+				"ml-1", "p-1",
+				"border-[1px]", "border-c-neutral-text", "rounded", "hover:border-c-primary-text",
+				"text-c-neutral-text", "hover:bg-c-primary-text" }
+			>
+				@icon.ChevronRight(icon.ChevronRightProps{
+					Class: "w-2",
+				})
+			</a>
+		</nav>
+	}
+}

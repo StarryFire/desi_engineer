@@ -1,0 +1,62 @@
+version: "3"
+name: desi_engineer
+
+services:
+  cadvisor:
+    container_name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    privileged: true
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:rw"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker:/var/lib/docker:ro"
+      - "/dev/disk:/dev/disk:ro"
+    networks:
+      - private-1
+    devices:
+      - "/dev/kmsg:/dev/kmsg"
+
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    networks:
+      - private-1
+    # network_mode: host
+    # pid: host
+    # command:
+    #   - "--path.rootfs=/host"
+    # volumes:
+    #   - "/:/host:ro,rslave"
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    user: "1000" # id of the user on the host that owns the host volume directories, resolves permission issues when container tries to write in the mounted volumes
+    command: --config.file=/etc/prometheus/config.yaml
+    volumes:
+      - ./monitoring_exporters/prometheus/data/prometheus:/prometheus
+
+      - ./monitoring_exporters/prometheus/config.yaml:/etc/prometheus/config.yaml:ro
+    networks:
+      - private-1
+    labels:
+      logging: "promtail"
+      logging_jobname: "docker_compose_logs"
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:2.9.4
+    command: -config.file=/mnt/config/config.yaml
+    volumes:
+      - ./monitoring_exporters/promtail/data/var_log:/var/log
+
+      - ./monitoring_exporters/promtail/config.yaml:/mnt/config/config.yaml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # TODO: Mark as :ro and check if it works
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - private-1
+    labels:
+      logging: "promtail"
+      logging_jobname: "docker_compose_logs"

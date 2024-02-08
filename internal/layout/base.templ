@@ -1,0 +1,80 @@
+package layout
+
+import "github.com/starryfire/desi_engineer/config/projectconfig"
+import "github.com/starryfire/desi_engineer/config/projectconstant"
+import "fmt"
+
+type BaseProps struct {
+	Header        templ.Component
+	Main          templ.Component
+	Footer        templ.Component
+	ExtraMetaTags templ.Component
+}
+
+templ Base(props BaseProps) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<!-- SEO Tags -->
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<meta content="Kartik Sharma" name="author"/>
+			<meta name="robots" content="index, follow"/>
+			<!-- TODO: Add structured data for the website
+			<script type="application/ld+json">
+			{
+			"@context": "https://schema.org",
+			"@type": "WebPage",
+			"url": "http://www.example.com/page",
+			"name": "Example Page",
+			"description": "This is an example page."
+			}
+			</script>
+			-->
+			<!--
+			TODO: Automatically generate the content of this file, tells crawlers about all the urls hosted on the site
+			<link href="/sitemap-index.xml" rel="sitemap"/>
+			-->
+			<!-- SEO Tags end -->
+			<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+			<!-- sets the browser theme on mobile browsers like safari, default is #2a2c37, javascript then changes this to match the website's background color  -->
+			<meta content="#2a2c37" name="theme-color"/>
+			if props.ExtraMetaTags != nil {
+				@props.ExtraMetaTags
+			}
+			if projectconfig.ENV == projectconstant.ENV_DEV {
+				<!-- Uncomment to enable baseline
+				<script src={ fmt.Sprintf("/static/%s/js/baseliner.js", projectconfig.VERSION) }></script>
+				 <script src={ fmt.Sprintf("/static/%s/js/custom_baseliner.js", projectconfig.VERSION) }></script>
+				-->
+			}
+			<!-- 
+			Using google fonts because it serves the fonts via a CDN and it 
+			also automatically detects whether the browser supports woff2 or not and serves the appropriate font file
+			-->
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link
+				href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Press+Start+2P&display=swap"
+				rel="stylesheet"
+			/>
+			<!-- <script type="text/javascript" src={ fmt.Sprintf("/static/%s/js/htmx.js", projectconfig.VERSION) }></script> not being used currently-->
+			<script type="text/javascript" src={ fmt.Sprintf("/static/%s/js/set_theme.js", projectconfig.VERSION) }></script>
+			<link href={ fmt.Sprintf("/static/%s/css/output.css", projectconfig.VERSION) } rel="stylesheet"/>
+			<link href={ fmt.Sprintf("/static/%s/css/prism.css", projectconfig.VERSION) } rel="stylesheet"/>
+		</head>
+		<body>
+			if props.Header != nil {
+				@props.Header
+			}
+			if props.Main != nil {
+				@props.Main
+			}
+			if props.Footer != nil {
+				@props.Footer
+			}
+			<!-- Prism with autoloader plugin: https://prismjs.com/plugins/autoloader/ -->
+			<script type="text/javascript" src={ fmt.Sprintf("/static/%s/js/prism/prism.js", projectconfig.VERSION) }></script>
+		</body>
+	</html>
+}

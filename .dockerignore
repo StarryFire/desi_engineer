@@ -1,0 +1,21 @@
+# NOTE: This file is used when you run the "docker compose" command from the same directory as this file.
+
+######################################################################################################################################################################################
+# Ignore everything by default for security reasons
+*
+######################################################################################################################################################################################
+
+# Except
+!go.mod
+!go.sum
+!deployment/scripts/aliases/install.sh
+!deployment/scripts/aliases/build.sh
+!deployment/scripts/aliases/global.sh
+!Makefile
+# TODO: Figure out a way to remove assets from the image in order to reduce image size
+!assets/
+!cmd/
+!config/
+!internal/
+!pkg/
+!main.go

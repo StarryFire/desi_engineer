@@ -1,0 +1,14 @@
+{
+  "editor.formatOnSave": true,
+  "[templ]": {
+    "editor.defaultFormatter": "a-h.templ"
+  },
+
+  // in case tailwindcss intellisense is not working in templ files
+  "tailwindCSS.includeLanguages": {
+    "templ": "html"
+  },
+  "editor.quickSuggestions": { "strings": "on" },
+  "debug.console.closeOnEnd": true,
+  "ansible.python.interpreterPath": "/Users/Kartik/.asdf/shims/python3"
+}

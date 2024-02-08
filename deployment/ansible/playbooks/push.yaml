@@ -1,0 +1,9 @@
+---
+- name: Install
+  ansible.builtin.import_playbook: ./install.yaml
+- name: Configure
+  ansible.builtin.import_playbook: ./configure.yaml
+- name: Deploy
+  vars:
+    force: true
+  ansible.builtin.import_playbook: ./deploy.yaml

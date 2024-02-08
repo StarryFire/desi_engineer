@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* defined all colors as css variables in order to support dynamic changing of theme */
+    --c-neutral-50: 220deg 20% 97%;
+    --c-neutral-100: 230deg 19% 94%;
+    --c-neutral-200: 229deg 15% 86%;
+    --c-neutral-300: 226deg 16% 74%;
+    --c-neutral-400: 225deg 16% 60%;
+    --c-neutral-500: 225deg 15% 48%;
+    --c-neutral-600: 227deg 16% 39%;
+    --c-neutral-700: 228deg 16% 32%;
+    --c-neutral-800: 229deg 16% 27%;
+    --c-neutral-900: 229deg 13% 24%;
+    --c-neutral-950: 231deg 14% 19%;
+
+    --c-primary-50: 153deg 100% 96%;
+    --c-primary-100: 157deg 100% 92%;
+    --c-primary-200: 157deg 100% 84%;
+    --c-primary-300: 157deg 100% 72%;
+    --c-primary-400: 157deg 98% 58%;
+    --c-primary-500: 157deg 100% 48%;
+    --c-primary-600: 156deg 100% 38%;
+    --c-primary-700: 157deg 100% 29%;
+    --c-primary-800: 158deg 90% 24%;
+    --c-primary-900: 158deg 86% 20%;
+    --c-primary-950: 158deg 100% 11%;
+
+    /* default theme */
+    /* You need to override these colors for theming */
+    --c-primary-text: var(--c-primary-500);
+    --c-neutral-text: var(--c-neutral-50);
+    --c-primary-tag: var(--c-primary-200);
+    --c-neutral-bg: var(--c-neutral-950);
+  }
+
+  html[data-theme="dark"] {
+    /* dark theme */
+    --c-primary-text: var(--c-primary-500);
+    --c-neutral-text: var(--c-neutral-50);
+    --c-primary-tag: var(--c-primary-200);
+    --c-neutral-bg: var(--c-neutral-950);
+  }
+
+  html[data-theme="light"] {
+    /* light theme */
+    --c-primary-text: var(--c-primary-700);
+    --c-neutral-text: var(--c-neutral-950);
+    --c-primary-tag: var(--c-primary-900);
+    --c-neutral-bg: var(--c-neutral-100);
+  }
+
+  /* Not serving fonts locally since .ttf files are very large and .woff2 might not be supported by all browsers */
+  /* Hence offloading this responsibility to google fonts */
+  /* font-display: swap; means the text is rendered immediately in a fallback font, and the custom font is loaded in the background. */
+  /* 
+  @font-face {
+      font-family: 'Press Start 2P';
+      src: url('/static/font/PressStart2P-Regular.ttf');
+      font-display: swap;
+  }
+  
+  @font-face {
+      font-family: 'IBM Plex Mono';
+      src: url('/static/font/IBMPlexMono-Regular.ttf');
+      font-display: swap; 
+  }  
+  */
+
+  html {
+    /* min root font size is 16px and max root font size is 20px, scaling of root font size will follow 2vw */
+    /* laptop breakpoint is 1000px cuz 1000*0.02 = 20 or 20/0.02 = 1000 */
+    /* tablet breakpoint is 800px cuz 800*0.02 = 16 or 16/0.02 = 800 */
+    @apply text-base mobile:text-[16px] tablet:text-[2vw] laptop:text-[20px]
+  }
+
+  body {
+    @apply bg-c-neutral-bg text-c-neutral-text my-1 mx-2 text-sm laptop:text-base
+  }
+
+  h1 {
+    @apply heading-md laptop:heading-xl
+  }
+  h2 {
+    @apply heading-base laptop:heading-lg
+  }
+  h3 {
+    @apply heading-sm laptop:heading-md
+  }
+  h4 {
+    @apply heading-xs laptop:heading-base
+  }
+
+  .article {
+    img {
+      @apply mx-auto mt-2
+    }
+    pre {
+      @apply w-fit mx-auto mt-2 !important
+    }
+    code {
+      @apply text-c-neutral-bg bg-c-neutral-50 px-1 text-sm laptop:text-base
+    }
+    pre code {
+      @apply text-xs laptop:text-sm p-0 !important
+    }
+    a {
+      @apply text-c-primary-text hover:underline underline-offset-4 decoration-dashed decoration-c-primary-text decoration-2
+    }
+  }
+  
+}
+

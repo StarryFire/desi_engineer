@@ -1,0 +1,50 @@
+package component
+
+import "strings"
+
+type AuthorProps struct{}
+
+templ authorStyle() {
+	<style type="text/css">
+		/* defines 4 steps of animation */
+		@keyframes idle_wizard_sprite {
+			/* pause at the beginning for 40% of the animation duration */
+			0% { background-position: -32px -50px; }
+			40% { background-position: -32px -50px; }
+
+			/* play the animation for 15% of the animation duration */
+
+			/* pause at the end for 50% of the animation duration */
+			50% { background-position: calc(-32px - 512px) -50px; }
+			80% { background-position: calc(-32px - 512px) -50px; }
+			100% { background-position: calc(-32px - 512px) -50px; }
+		}
+		#wizard_sprite {
+			width: 64px;
+			height: 80px;
+			background: url("/static/sprite/wizard_idle.png");
+			animation: idle_wizard_sprite 4s steps(4) infinite;
+			animation-direction: alternate;
+			background-repeat: no-repeat;
+			background-position: -32px -50px;
+		}
+	</style>
+}
+
+templ Author(props AuthorProps) {
+	<div class="border border-dashed p-1">
+		@authorStyle()
+		<div class="flex">
+			<div id="wizard_sprite"></div>
+			<div class="flex flex-col justify-end">
+				<h4>Author</h4>
+				<h4>{ strings.ToUpper("Kartik Sharma") }</h4>
+			</div>
+		</div>
+		<p>
+			{ "Lorem ipsum dolor sit amet, consectetur " + 
+        "adipiscing elit. Nulla euismod, nisl eget ultricies aliquam, " + 
+        "nunc nunc ultricies nunc, nec ultricies nunc nunc nec nunc." }
+		</p>
+	</div>
+}

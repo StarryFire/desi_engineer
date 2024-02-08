@@ -1,0 +1,58 @@
+version: "3"
+name: desi_engineer
+
+# References:
+# https://github.com/evertramos/nginx-proxy-automation
+# https://github.com/nginx-proxy/acme-companion/blob/main/docs/Docker-Compose.md
+
+# You can inspect the subnet of default docker bridge by running: netstat -rn or docket network inspect network_name
+# Create a docker network: docker network create network_name
+# Remove a docker network: docker network rm network_name
+# List networks: docker network list
+
+# Add the following in order to access the host machine from inside container
+# extra_hosts:
+#   - "host.docker.internal:host-gateway"
+
+services:
+  grafana:
+    environment:
+      - VIRTUAL_HOST=desi-engineer-1.tail76efa.ts.net
+      - VIRTUAL_PORT=3000
+      - VIRTUAL_PATH=/grafana/
+      - LETSENCRYPT_RESTART_CONTAINER=true
+      - GF_LOG_LEVEL=debug
+
+    # If you want to give unrestricted and anonymous access to Grafana, uncomment the following lines
+    # - GF_AUTH_ANONYMOUS_ENABLED=true
+    # - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    # - GF_AUTH_DISABLE_LOGIN_FORM=true
+    container_name: grafana
+    image: grafana/grafana:latest
+    user: "1000" # id of the user on the host that owns the host volume directories, resolves permission issues when container tries to write in the mounted volumes
+    volumes:
+      - ./monitoring_collectors/grafana/data/var_lib_grafana:/var/lib/grafana # stores dashboards, users, etc.
+      - ./monitoring_collectors/grafana/dashboards:/var/lib/grafana/dashboards:ro # creates /var/lib/grafana/dashboards folder in the container
+
+      - ./monitoring_collectors/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring_collectors/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring_collectors/grafana/config.ini:/etc/grafana/grafana.ini:ro
+    networks:
+      - private-1
+    labels:
+      logging: "promtail"
+      logging_jobname: "docker_compose_logs"
+    ports:
+      - "3000:3000"
+
+  loki:
+    container_name: loki
+    image: grafana/loki:2.9.4
+    command: -config.file=/mnt/config/config.yaml
+    volumes:
+      - ./monitoring_collectors/loki/config.yaml:/mnt/config/config.yaml:ro
+    networks:
+      - private-1
+    labels:
+      logging: "promtail"
+      logging_jobname: "docker_compose_logs"

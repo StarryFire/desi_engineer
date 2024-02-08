@@ -1,0 +1,4 @@
+# Uncomment and deploy to delete provisioned data sources
+# apiVersion: 1
+# deleteDatasources:
+#   - name: prometheus
