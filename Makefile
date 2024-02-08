@@ -3,7 +3,7 @@
 # Use '##' above the target to document it and show it in the listed targets of "help" screen 
 
 # Changes the default shell in which makefile commands run
-SHELL := /bin/bash
+# SHELL := /bin/bash
 # .SHELLFLAGS := -e -c
 
 # PHONY targets don't have any corresponding target/output file
@@ -18,10 +18,7 @@ default: help
 ## run any alias defined in the project in a subshell eg. make run cmd="command arg1 arg2 -f1 --f2 --f3=fv3"
 run:
 	@$(call parse_command_args)
-	@source deployment/scripts/aliases/global.sh
-	@load_all_aliases
-	@_debug
-	@$(command) $(command_args)
+	@. ./deployment/scripts/aliases/global.sh && load_all_aliases && _debug && $(command) $(command_args)
 
 ## install desi_engineer
 install:

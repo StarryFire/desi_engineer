@@ -1,27 +1,27 @@
 {
   "version": "0.2.0",
   "configurations": [
+    // {
+    //   "name": "Launch Blog",
+    //   "type": "go",
+    //   "request": "launch",
+    //   "mode": "auto",
+    //   "preLaunchTask": "Build",
+    //   "cwd": "${workspaceFolder}",
+    //   "program": "main.go",
+    //   "args": ["serve", "--host", "0.0.0.0", "--port", "3000"],
+    //   "console": "integratedTerminal", // for showing colored output
+    //   "internalConsoleOptions": "neverOpen" // to stop redirections to debug console when launching debug session
+    // },
     {
-      "name": "Launch Blog",
-      "type": "go",
-      "request": "launch",
-      "mode": "auto",
-      "preLaunchTask": "Build",
-      "cwd": "${workspaceFolder}",
-      "program": "main.go",
-      "args": ["serve", "--host", "0.0.0.0", "--port", "3000"],
-      "console": "integratedTerminal", // for showing colored output
-      "internalConsoleOptions": "neverOpen" // to stop redirections to debug console when launching debug session
-    },
-    {
-      "name": "Make dev",
-      "command": "make dev",
+      "name": "start_dev",
+      "command": "make run cmd='start_dev'",
       "request": "launch",
       "type": "node-terminal"
     },
     {
-      "name": "Make dev_html",
-      "command": "make dev_html",
+      "name": "start_dev_watch",
+      "command": "make run cmd='start_dev_watch'",
       "request": "launch",
       "type": "node-terminal"
     }
