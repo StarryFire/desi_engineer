@@ -21,7 +21,8 @@ NOTES.md
 !/secrets/**/*.example.yaml
 
 # ignore contents of all the direct subfolders of deployment/secrets/ (except .gitkeep)
-deployment/secrets/*/**
+deployment/secrets/*/*
+!deployment/secrets/*/dev
 
 # ignore contents of all the direct subfolders of deployment/services/**/data/ (except .gitkeep)
 deployment/services/**/data/*/**

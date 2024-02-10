@@ -19,7 +19,7 @@ services:
     volumes:
       # Always mount directories rather than files in docker-compose because otherwise changes to files on host won't reflect in the container
       # this has something to do with how different os/editors/etc. make changes to files: https://github.com/moby/moby/issues/15793#issuecomment-135411504
-      - ../secrets/cms:/root/secrets:ro
+      - ../secrets/cms/:/root/deployment/secrets/cms/:ro
     networks:
       - private-1
     healthcheck:

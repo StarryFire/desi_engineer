@@ -5,10 +5,14 @@ run() {
     bash -c '
     source deployment/scripts/aliases/global.sh
     load_all_aliases
+    _run $@
+    ' _ $@
+}
+
+_run() {
     _debug
     echo_err "[run] running: $@"
     $@
-    ' _ $@
 }
 
 _get_all_local_function_names_list() {

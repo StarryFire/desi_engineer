@@ -5,17 +5,13 @@ ARG ENV
 ARG PLATFORM_LINUX_ARM64="aarch64"
 ARG PLATFORM_LINUX_x86_64="x86_64"
 
-
-
 WORKDIR /app
 
 # Install deps
 COPY go.mod go.mod
 COPY go.sum go.sum
 # Only the aliases in these files are required to build and install the app
-COPY deployment/scripts/aliases/global.sh deployment/scripts/aliases/global.sh
-COPY deployment/scripts/aliases/build.sh deployment/scripts/aliases/build.sh
-COPY deployment/scripts/aliases/install.sh deployment/scripts/aliases/install.sh
+COPY deployment/scripts/aliases/ deployment/scripts/aliases/
 COPY Makefile Makefile
 RUN make install
 
@@ -24,9 +20,9 @@ COPY . .
 # Build the Go app
 RUN make build
 
+# SHELL ["/bin/bash", "-c"]
 # Or use the below to install and build if you don't want to use makefile
 # Change the default shell to bash
-# SHELL ["/bin/bash", "-c"]
 # RUN source deployment/scripts/aliases/global.sh && load_all_aliases && install
 # RUN source deployment/scripts/aliases/global.sh && load_all_aliases && build
 

@@ -24,6 +24,12 @@
     #         repo_gpgcheck: true
     #         gpgkey: https://pkgs.tailscale.com/stable/amazon-linux/2023/repo.gpg
 
+    - name: Update & upgrade all packages # noqa package-latest
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+
     - name: Install dnf dependencies
       ansible.builtin.dnf:
         name:

@@ -13,10 +13,10 @@
       block:
         - name: Copy secrets
           ansible.builtin.include_tasks: ./copy_secrets.yaml
-        - name: "Running deploy script: source deployment/scripts/aliases/global.sh && load_all_aliases && deploy {{ flags | default('') }}"
+        - name: 'Running deploy script: make run cmd="deploy {{ flags | default('''') }}"'
           # runs the script that is local to the node and not the controller
-          ansible.builtin.shell:
-            cmd: "source deployment/scripts/aliases/global.sh && load_all_aliases && deploy {{ flags | default('') }}"
+          ansible.builtin.command:
+            cmd: 'make run cmd="deploy {{ flags | default('''') }}"'
             chdir: ~/desi_engineer
           register: cmd_output
           changed_when: cmd_output.stderr_lines[-1] != "[no changes in the remote repository.]"

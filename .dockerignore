@@ -10,6 +10,7 @@
 !go.sum
 !deployment/scripts/aliases/install.sh
 !deployment/scripts/aliases/build.sh
+!deployment/scripts/aliases/run.sh
 !deployment/scripts/aliases/global.sh
 !Makefile
 # TODO: Figure out a way to remove assets from the image in order to reduce image size
