@@ -87,6 +87,9 @@ services:
       logging_jobname: "docker_compose_logs"
 
   ##################################################################### TAILSCALE VPN ######################################################################################
+  # TODO: services that are supposed to be behind tailscale are still exposed to the internet if you don't separate this proxy into public-proxy and private-proxy
+  # However, even though grafana is exposed to the internet, nginx internal /auth will block any attempts to access it with a 401 since the request is not
+  # coming via tailscale.
   tailscale:
     env_file:
       - ../secrets/docker/tailscale.txt

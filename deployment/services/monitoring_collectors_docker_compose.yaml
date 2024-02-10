@@ -20,7 +20,6 @@ services:
       - VIRTUAL_HOST=desi-engineer-1.tail76efa.ts.net
       - VIRTUAL_PORT=3000
       - VIRTUAL_PATH=/grafana/
-      - LETSENCRYPT_RESTART_CONTAINER=true
       - GF_LOG_LEVEL=debug
 
     # If you want to give unrestricted and anonymous access to Grafana, uncomment the following lines
