@@ -155,6 +155,7 @@ _deploy_helper() {
     _deploy_script_setup $@
 
     _copy_nginx_files
+    _copy_private_nginx_files
     dc_up_build
     if [ "$generate_or_renew_certs" == "y" ]; then
         _generate_or_renew_certs

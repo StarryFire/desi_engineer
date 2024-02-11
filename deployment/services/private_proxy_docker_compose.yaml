@@ -23,13 +23,13 @@ services:
         NGINX_UID: 1000
         NGINX_GID: 1000
     volumes:
-      - ./private_proxy/nginx/data/etc_nginx_conf.d:/etc/nginx/conf.d
-      - ./private_proxy/nginx/data/etc_nginx_vhost.d:/etc/nginx/vhost.d
-      - ./private_proxy/nginx/data/usr_share_nginx_html:/usr/share/nginx/html
-      - ./private_proxy/nginx/data/etc_nginx_certs:/etc/nginx/certs:ro
+      - private_nginx_confd:/etc/nginx/conf.d
+      - private_nginx_vhostd:/etc/nginx/vhost.d
+      - private_nginx_html:/usr/share/nginx/html
+      - private_nginx_certs:/etc/nginx/certs:ro
 
       # tailscale-nginx-auth socket from tailscale-nginx-auth container
-      - ./private_proxy/tailscale_nginx_auth/data/run_tailscale.nginx-auth:/run/tailscale.nginx-auth
+      - tailscale_nginx_auth_run:/run/tailscale.nginx-auth
 
       - ./private_proxy/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./private_proxy/nginx/proxy.conf:/etc/nginx/proxy.conf
@@ -83,13 +83,16 @@ services:
       timeout: 5s
       retries: 60
     volumes:
-      - ./private_proxy/tailscale/data/var_run_tailscale:/var/run/tailscale # contains tailscale socket pointer
-      - ./private_proxy/tailscale/data/tmp:/tmp # contains actual tailscale socket
-      - ./private_proxy/tailscale/data/var_lib_tailscale:/var/lib/tailscale
+      - tailscale_run:/var/run/tailscale # contains tailscale socket pointer
+      - tailscale_tmp:/tmp # contains actual tailscale socket
+      - tailscale_lib:/var/lib/tailscale
 
-      - ./private_proxy/nginx/data/etc_nginx_certs:/var/lib/tailscale/certs
+      - private_nginx_certs:/var/lib/tailscale/certs
     networks:
       - private-1
+    # ports:
+    #   - "80:80"
+    #   - "443:443"
 
   # Ref: https://tailscale.com/blog/grafana-auth, https://tailscale.com/blog/tailscale-auth-nginx
   tailscale-nginx-auth:
@@ -98,12 +101,15 @@ services:
     build:
       context: ../../
       dockerfile: ./deployment/services/private_proxy/tailscale_nginx_auth/Dockerfile
-    user: "1000:1000" # id of the user and group inside nginx container
+      args:
+          # Sets the uid and gid of the nginx user inside the container that runs the nginx workers
+          NGINX_UID: 1000
+          NGINX_GID: 1000
     volumes:
-      - ./private_proxy/tailscale_nginx_auth/data/run_tailscale.nginx-auth:/run/tailscale.nginx-auth # contains tailscle-nginx-auth socket
+      - tailscale_nginx_auth_run:/run/tailscale.nginx-auth # contains tailscle-nginx-auth socket
 
-      - ./private_proxy/tailscale/data/var_run_tailscale:/var/run/tailscale # contains hard link to actual tailscale socket
-      - ./private_proxy/tailscale/data/tmp:/tmp # contains the actual tailscale socket
+      - tailscale_run:/var/run/tailscale # contains hard link to actual tailscale socket
+      - tailscale_tmp:/tmp # contains the actual tailscale socket
     networks:
       - private-1
     depends_on:

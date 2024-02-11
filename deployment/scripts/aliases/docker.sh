@@ -36,6 +36,38 @@ do_run() {
     docker run $@
 }
 
+# Run this to copy data from host to volume or from volume to volume
+# Example: do_volume_cp ./deployment/services/proxy/nginx/vhost.d private_nginx_vhostd 
+do_volume_cp() {
+    from=$1
+    to=$2
+    docker run --name copy-utility --rm -v $from:/from -v $to:/to busybox cp -r /from/. /to
+}
+do_volume_rsync() {
+    from=$1
+    to=$2
+    docker run --name rsync-utility --rm -v $from:/from -v $to:/to busybox sh -c "rm -rf /to/* && cp -r /from/. /to"
+}
+
+# Run this to delete data from volume
+do_volume_rm() {
+    docker run --name remove-utility --rm -v $1:/to_be_removed busybox sh -c "rm -rf to_be_removed/$2"
+}
+# because we can't pass "*" as an argument to a bash command without the shell automatically expanding it
+do_volume_rm_all() {
+    docker run --name remove-utility --rm -v $1:/to_be_removed busybox sh -c "rm -rf /to_be_removed/*"
+}
+
+do_inspect_volume() {
+    set -x
+    sudo ls -l /var/lib/docker/volumes/$1/_data
+    set +x
+}
+
+do_rm_volume() {
+    docker volume rm $1
+}
+
 # creates a new container and runs a shell in it
 do_enter() {
     do_run --entrypoint="/bin/sh" -it $1

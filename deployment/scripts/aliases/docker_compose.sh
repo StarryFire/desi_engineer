@@ -20,20 +20,24 @@ dc_debug_build() {
 
 dc_up_build() {
     _copy_nginx_files
+    _copy_private_nginx_files
     dc up $@ --build -d --remove-orphans
 }
 
 dc_force_up() {
     _copy_nginx_files
+    _copy_private_nginx_files
     dc up $@ --build -d --remove-orphans --force-recreate
 }
 
 dc_up() {
     _copy_nginx_files
+    _copy_private_nginx_files
     dc up $@ -d --remove-orphans
 }
 dc_debug_up() {
     _copy_nginx_files
+    _copy_private_nginx_files
     dc_debug up $@ -d --remove-orphans
 }
 

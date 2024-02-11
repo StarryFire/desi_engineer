@@ -24,25 +24,25 @@ RUN if [ "$(uname --machine)" = "$PLATFORM_LINUX_ARM64" ]; then \
 # Stage 2
 FROM alpine:latest
 
+ARG NGINX_UID=103
+ARG NGINX_GID=103
+
 # # Copy the script.
 # Setting the uid and gid of the socket to that of the nginx worker process in the nginx container
-# You can get it by running:
+# You can get it by running the following in the nginx container:
 # - ps aux: will give the username of the process that owns the nginx worker process i.e. nginx
 # - id nginx: will give the uid and gid of the username nginx
-# COPY deployment/scripts/set_uid_and_gid.sh /
-# RUN bash /set_uid_and_gid.sh "101" "101"
-# RUN addgroup -g 101 nginx 
-# RUN adduser -u 101 -G nginx -S nginx
 
 RUN apk add rpm
 COPY --from=builder /root/tailscale-1.58.2/cmd/nginx-auth/tailscale-nginx-auth.rpm .
 RUN rpm -i tailscale-nginx-auth.rpm
 
-# The mounted volume should already belong to nginx for this to work i.e. the host volume should be owned by user id of nginx i.e. 101
+RUN mkdir -p /run/tailscale.nginx-auth/
+
+# The directory (/run/tailscale.nginx-auth) should belong to the nginx-worker userid and groupid so that it can access the socket
+RUN addgroup -g $NGINX_GID nginx
+RUN adduser -u $NGINX_UID -G nginx -S nginx
+RUN chown -R nginx:nginx /run/tailscale.nginx-auth
+
 USER nginx
 CMD [ "/bin/sh", "-c", "/usr/sbin/tailscale.nginx-auth --sockpath='/run/tailscale.nginx-auth/tailscale.nginx-auth.sock'" ]
-
-# USER root
-# CMD [ "ls", "-ln", "/nginx/" ]
-# CMD [ "/bin/sh", "-c", "/usr/sbin/tailscale.nginx-auth --sockpath='/run/tailscale.nginx-auth/tailscale.nginx-auth.sock'" ]
-
