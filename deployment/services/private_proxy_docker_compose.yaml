@@ -14,7 +14,7 @@ services:
   ################################################# DYNAMIC NGINX PROXY + SSL CONFIGURATION #########################################################################################
   private-nginx:
     container_name: private-nginx
-    image: desiengineer/nginx:latest
+    image: desiengineer/private-nginx:latest
     build:
       context: ../../
       dockerfile: ./deployment/services/private_proxy/nginx/Dockerfile
