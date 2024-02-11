@@ -148,8 +148,8 @@ _deploy_helper() {
         echo_err "[tailscale https certificates generated.]"
     fi
     dc_exec docker-gen docker-gen -notify-sighup nginx /etc/docker-gen/templates/custom_nginx.tmpl /etc/nginx/conf.d/default.conf
-    # cleanup unused images
-    dc_cleanup
+    # cleanup unused images & containers
+    do_cleanup
     echo_err "[deleted stopped containers and unused images.]"
 
     echo_err "[success.]"
@@ -220,8 +220,8 @@ _deploy_helper() {
     #     echo_err "[no changes made to nginx.]"
     # fi
 
-    # cleanup unused images
-    # dc_cleanup
+    # cleanup unused images & containers
+    # do_cleanup
     # echo_err "[deleted stopped containers and unused images.]"
 
     # echo_err "[success.]"

@@ -41,8 +41,6 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "docker_compose_logs"
-    ports:
-      - "3000:3000"
 
   loki:
     container_name: loki
@@ -55,3 +53,15 @@ services:
     labels:
       logging: "promtail"
       logging_jobname: "docker_compose_logs"
+
+  uptime-kuma:
+    environment:
+      - VIRTUAL_HOST=desi-engineer-1.tail76efa.ts.net
+      - VIRTUAL_PORT=3001
+      - VIRTUAL_PATH=/uptime-kuma/
+    container_name: uptime-kuma
+    image: louislam/uptime-kuma:latest
+    volumes:
+      - uptime-kuma-data:/app/data
+    networks:
+      - private-1

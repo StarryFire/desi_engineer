@@ -1,0 +1,4 @@
+version: "3"
+volumes:
+  uptime-kuma-data:
+    driver: local

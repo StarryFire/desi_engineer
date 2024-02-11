@@ -1,11 +1,11 @@
 #!/bin/bash
 
 ############################################################### PUBLIC ################################################################################
-dc() {    
+dc() {
     docker compose $DOCKER_COMPOSE_FILES $@
 }
 
-dc_debug() {    
+dc_debug() {
     docker -D compose $DOCKER_COMPOSE_FILES $@
 }
 
@@ -29,7 +29,7 @@ dc_force_up() {
 }
 
 dc_up() {
-    _copy_nginx_files    
+    _copy_nginx_files
     dc up $@ -d --remove-orphans
 }
 dc_debug_up() {
@@ -52,11 +52,11 @@ dc_force_up_logs() {
 }
 
 dc_logs() {
-    dc logs $@ -f;
+    dc logs $@ -f
 }
 
 dc_exec() {
-    dc exec $@;
+    dc exec $@
 }
 
 dc_enter() {
@@ -66,16 +66,14 @@ dc_enter() {
 dc_down() {
     # Run with caution on production!
     # This also destroys the docker bridge networks changing their subnets which are hardcoded into the project in services like grafana!
-    dc down $@ --remove-orphans;
-}
-
-
-dc_cleanup() {    
-    dc rm -f;
-    _do_prune_images
+    dc down $@ --remove-orphans
 }
 
 ################################################# PRIVATE ##############################################################################################
+
+_dc_remove_all_stopped_containers() {
+    dc rm -f
+}
 
 _dc_get_running_services() {
     dc ps --format '{{.Names}}'
@@ -88,7 +86,6 @@ _dc_is_container_running() {
 _dc_container_id() {
     dc ps -q $1
 }
-
 
 # NOTE
 # https://unix.stackexchange.com/a/305361
@@ -136,12 +133,12 @@ _dc_container_id() {
 #             ;;
 #         esac
 #     done
-    
+
 #     # files=${files::-1} # Remove the trailing separator
-    
+
 #     shift $((OPTIND -1))
 #     positional_params=("$@")
-    
+
 #     containers=${positional_params[@]}
 # }
 
