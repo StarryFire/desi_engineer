@@ -43,13 +43,8 @@ load_all_aliases() {
 _copy_nginx_files() {
     # Keeps the tmp folders entirely in sync with the main folders while keeping .gitkeep and default files in the target folder
     # need to keep these files in sync in order to correctly deploy nginx
-    do_volume_rsync ./deployment/services/proxy/nginx/vhost.d ./deployment/services/proxy/nginx/data/etc_nginx_vhost.d
-}
-
-_copy_private_nginx_files() {
-    # Keeps the tmp folders entirely in sync with the main folders while keeping .gitkeep and default files in the target folder
-    # need to keep these files in sync in order to correctly deploy nginx
-    do_volume_rsync ./deployment/services/private_proxy/nginx/vhost.d private_nginx_vhostd
+    rsync -a --delete --exclude=".gitkeep" --exclude="default" deployment/services/proxy/nginx/vhost.d/ deployment/services/proxy/nginx/data/etc_nginx_vhost.d
+    rsync -a --delete --exclude=".gitkeep" --exclude="default.conf" deployment/services/proxy/nginx/conf.d/ deployment/services/proxy/nginx/data/etc_nginx_conf.d
 }
 
 _print_stack() {

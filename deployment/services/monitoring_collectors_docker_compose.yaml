@@ -62,6 +62,6 @@ services:
     container_name: uptime-kuma
     image: louislam/uptime-kuma:latest
     volumes:
-      - uptime_kuma_data:/app/data
+      - uptime-kuma-data:/app/data
     networks:
       - private-1

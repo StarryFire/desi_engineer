@@ -35,9 +35,9 @@ services:
     networks:
       - public-1
       - private-1
-    # ports:
-    #   - "80:80"
-    #   - "443:443"
+    ports:
+      - "80:80"
+      - "443:443"
     labels:
       logging: "promtail"
       logging_jobname: "docker_compose_logs"
