@@ -1,4 +1,49 @@
 version: "3"
 volumes:
-  uptime-kuma-data:
+  uptime_kuma_data:
+    name: uptime_kuma_data
+    driver: local
+
+  private_nginx_confd:
+    name: private_nginx_confd
+    driver: local
+  private_nginx_vhostd:
+    name: private_nginx_vhostd
+    driver: local
+  private_nginx_html:
+    name: private_nginx_html
+    driver: local
+  private_nginx_certs:
+    name: private_nginx_certs
+    driver: local
+
+  tailscale_nginx_auth_run:
+    name: tailscale_nginx_auth_run
+    driver: local
+
+  tailscale_run:
+    name: tailscale_run
+    driver: local
+  tailscale_tmp:
+    name: tailscale_tmp
+    driver: local
+  tailscale_lib:
+    name: tailscale_lib
+    driver: local
+
+  public_nginx_confd:
+    name: public_nginx_confd
+    driver: local
+  public_nginx_vhostd:
+    name: public_nginx_vhostd
+    driver: local
+  public_nginx_html:
+    name: public_nginx_html
+    driver: local
+  public_nginx_certs:
+    name: public_nginx_certs
+    driver: local
+
+  acme_companion_etc:
+    name: acme_companion_etc
     driver: local

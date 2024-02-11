@@ -3,7 +3,9 @@ apiVersion: 1
 datasources:
 - name: Loki
   type: loki
-  access: proxy  # can be either proxy (grafana calls loki directly) or direct (client browser calls loki directly)
+  # Hit the following api from inside grafana container in order to test loki's live tailing/websockets
+  # curl 'http://loki:3100/loki/api/v1/tail?query=%7Bjob%3D%22docker_compose_logs%22%7D%20%7C%3D%20%60%60' -H 'Sec-WebSocket-Version: 13' -H 'Origin: https://desi-engineer-1.tail76efa.ts.net' -H 'Sec-WebSocket-Extensions: permessage-deflate' -H 'Sec-WebSocket-Key: 4CpF9MMVtQjVYOLG+AVeXA==' -H 'Connection: keep-alive, Upgrade' -H 'Sec-Fetch-Dest: empty' -H 'Sec-Fetch-Mode: websocket' -H 'Upgrade: websocket' -H 'Connection: upgrade'
+  access: proxy  # can be either proxy (grafana calls loki directly) or direct (client browser calls loki directly), related to websockets / live log tailing
   url: http://loki:3100
   isDefault: true
   editable: false

@@ -10,5 +10,8 @@
   },
   "editor.quickSuggestions": { "strings": "on" },
   "debug.console.closeOnEnd": true,
-  "ansible.python.interpreterPath": "/Users/Kartik/.asdf/shims/python3"
+  "ansible.python.interpreterPath": "/Users/Kartik/.asdf/shims/python3",
+  "files.associations": {
+    "*.dtmpl": "nginx"
+  }
 }

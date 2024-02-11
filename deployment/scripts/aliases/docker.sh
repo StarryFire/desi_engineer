@@ -26,10 +26,24 @@ do_cleanup() {
     if [ "$verbose" == "y" ]; then
         _do_prune_containers -v
         _do_prune_images -v
+        _do_prune_volumes -v
     else
         _do_prune_containers
         _do_prune_images
+        _do_prune_volumes
     fi
+}
+
+# WARNING!! Use with caution!!
+# Removes:
+# - all stopped containers
+# - all unused networks
+# - all unused images
+# - all build cache
+# - all unused anonymous and named volumes
+do_complete_cleanup() {
+    docker system prune -a
+    docker volume prune -a
 }
 
 do_run() {
@@ -73,12 +87,20 @@ do_enter() {
     do_run --entrypoint="/bin/sh" -it $1
 }
 
+# Works with both running and stopped containers 
+# do_view_file private-nginx /etc/nginx/conf.d/default.conf
 do_view_file() {
     docker cp $1:$2 - | tar x -O
 }
-
+# do_view_file_in_vim private-nginx /etc/nginx/conf.d/default.conf
 do_view_file_in_vim() {
     docker cp $1:$2 - | tar x -O | vi -
+}
+
+# do_get_docker_network_bridge_name private-1
+do_get_docker_network_bridge_name() {
+    network_id=$(docker network inspect -f {{.Id}} $1)
+    echo "br-${network_id:0:12}"
 }
 
 #############################################################  PRIVATE  ##################################################################################
@@ -104,6 +126,16 @@ _do_prune_containers() {
         do_debug container prune -f --filter 'until=1h'
     else
         docker container prune -f --filter 'until=1h'
+    fi
+}
+
+_do_prune_volumes() {
+    _do_script_setup $@
+    # removes all unused anonymous volumes
+    if [ "$verbose" == "y" ]; then
+        do_debug volume prune -f
+    else
+        docker volume prune -f
     fi
 }
 

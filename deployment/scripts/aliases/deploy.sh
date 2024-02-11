@@ -42,7 +42,7 @@ deploy() {
     fi
 
     deploy_script_changed="false"
-    if [ $(git diff $LOCAL_HASH..$REMOTE_HASH -- deployment/scripts/aliases/deploy.sh | wc -c) -gt 0 ]; then
+    if [ $(git diff $LOCAL_HASH..$REMOTE_HASH -- deployment/scripts/aliases/*.sh | wc -c) -gt 0 ]; then
         # notice, we are comparing local changes and not local committed changes, with the remote changes in this case as deployment script might get pulled separately
         deploy_script_changed="true"
     fi
@@ -63,76 +63,85 @@ deploy() {
     _deploy_helper $@ $extra_flags
 }
 
-deploy_nginx() {
-    echo_err "[deploying nginx...]"
-    _copy_nginx_files
-    if $(_dc_is_container_running nginx); then
-        echo_err "[reloading nginx...]"
-        dc_exec docker-gen docker-gen -notify-sighup nginx /etc/docker-gen/templates/custom_nginx.tmpl /etc/nginx/conf.d/default.conf
-        # dc_exec nginx -cmd="nginx -t"
-        # dc_exec nginx -cmd="nginx -s reload"
-        # echo_err "nginx reloaded."
-    else
-        echo_err "[nginx is not running...]"
-        dc_up_build nginx
-    fi
-    echo_err "[nginx deployed successfully.]"
-}
+# deploy_nginx() {
+#     echo_err "[deploying nginx...]"
+#     _copy_nginx_files
+#     if $(_dc_is_container_running nginx); then
+#         echo_err "[reloading nginx...]"
+#         dc_exec docker-gen docker-gen -notify-sighup nginx /etc/docker-gen/templates/custom_nginx.tmpl /etc/nginx/conf.d/default.conf
+#         # dc_exec nginx -cmd="nginx -t"
+#         # dc_exec nginx -cmd="nginx -s reload"
+#         # echo_err "nginx reloaded."
+#     else
+#         echo_err "[nginx is not running...]"
+#         dc_up_build nginx
+#     fi
+#     echo_err "[nginx deployed successfully.]"
+# }
 
-deploy_cms() {
-    dc_up_build cms
+# deploy_cms() {
+#     dc_up_build cms
 
-    cms_container_id=$(_dc_container_id cms)
-    if [ "$cms_container_id" == "" ]; then
-        echo_err "[cms service is not running!]"
-        exit 1
-    fi
-    status=$(_do_container_status $cms_container_id)
-    health_status=$(_do_container_health_status $cms_container_id)
-    while [ "$health_status" == "starting" ]; do
-        health_status=$(_do_container_health_status $cms_container_id)
-        echo_err "[waiting for cms service to start...]"
-        sleep 5s
-    done
+#     cms_container_id=$(_dc_container_id cms)
+#     if [ "$cms_container_id" == "" ]; then
+#         echo_err "[cms service is not running!]"
+#         exit 1
+#     fi
+#     status=$(_do_container_status $cms_container_id)
+#     health_status=$(_do_container_health_status $cms_container_id)
+#     while [ "$health_status" == "starting" ]; do
+#         health_status=$(_do_container_health_status $cms_container_id)
+#         echo_err "[waiting for cms service to start...]"
+#         sleep 5s
+#     done
 
-    if [ "$status" == "running" ] && [ "$health_status" == "healthy" ]; then
-        echo_err "[cms service is running.]"
-    else
-        echo_err "[cms service is not running!]"
-        echo_err "[status: $status, health_status: $health_status]"
-        exit 1
-    fi
-    echo_err "[cms deployed successfully.]"
-}
+#     if [ "$status" == "running" ] && [ "$health_status" == "healthy" ]; then
+#         echo_err "[cms service is running.]"
+#     else
+#         echo_err "[cms service is not running!]"
+#         echo_err "[status: $status, health_status: $health_status]"
+#         exit 1
+#     fi
+#     echo_err "[cms deployed successfully.]"
+# }
 
-deploy_auxillary() {
-    echo_err "[deploying auxillary services...]"
-    auxillary_containers=("docker-gen" "acme-companion" "grafana" "prometheus" "cadvisor" "node-exporter" "loki" "promtail" "tailscale" "tailscale-nginx-auth")
-    stopped_containers=()
-    running_containers=()
-    for container in "${auxillary_containers[@]}"; do
-        if [ $(_dc_is_container_running $container) ]; then
-            echo_err "[$container is already running...]"
-            running_containers+=($container)
-        else
-            echo_err "[$container is not running...]"
-            stopped_containers+=($container)
-        fi
-    done
+# deploy_auxillary() {
+#     echo_err "[deploying auxillary services...]"
+#     auxillary_containers=("docker-gen" "acme-companion" "grafana" "prometheus" "cadvisor" "node-exporter" "loki" "promtail" "tailscale" "tailscale-nginx-auth")
+#     stopped_containers=()
+#     running_containers=()
+#     for container in "${auxillary_containers[@]}"; do
+#         if [ $(_dc_is_container_running $container) ]; then
+#             echo_err "[$container is already running...]"
+#             running_containers+=($container)
+#         else
+#             echo_err "[$container is not running...]"
+#             stopped_containers+=($container)
+#         fi
+#     done
 
-    if [ ${#running_containers[@]} -gt 0 ]; then
-        dc_up_build "${running_containers[@]}"
-    fi
-    if [ ${#stopped_containers[@]} -gt 0 ]; then
-        dc_up_build "${stopped_containers[@]}"
-    fi
+#     if [ ${#running_containers[@]} -gt 0 ]; then
+#         dc_up_build "${running_containers[@]}"
+#     fi
+#     if [ ${#stopped_containers[@]} -gt 0 ]; then
+#         dc_up_build "${stopped_containers[@]}"
+#     fi
 
-    echo_err "[auxillary services deployed successfully.]"
-}
+#     echo_err "[auxillary services deployed successfully.]"
+# }
 
 ################################################## PRIVATE ##############################################################################################
 
 _generate_or_renew_certs() {
+    _generate_or_renew_private_host_certs
+    _generate_or_renew_public_host_certs
+}
+
+_generate_or_renew_public_host_certs() {
+    echo "TODO"
+}
+
+_generate_or_renew_private_host_certs() {
     echo_err "[generating/renewing certificates for desi-engineer-1.tail76efa.ts.net...]"
     # to generate or renew tailscale https certs in /var/lib/tailscale/certs
     dc_exec tailscale tailscale cert \
@@ -154,12 +163,10 @@ _deploy_helper() {
 
     _deploy_script_setup $@
 
-    _copy_nginx_files
-    dc_up_build
+    dc_up
     if [ "$generate_or_renew_certs" == "y" ]; then
         _generate_or_renew_certs
     fi
-    dc_exec docker-gen docker-gen -notify-sighup nginx /etc/docker-gen/templates/custom_nginx.tmpl /etc/nginx/conf.d/default.conf
     # cleanup unused images & containers
     do_cleanup
     echo_err "[deleted stopped containers and unused images.]"

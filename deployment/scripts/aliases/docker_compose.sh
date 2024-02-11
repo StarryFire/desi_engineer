@@ -4,9 +4,18 @@
 dc() {
     docker compose $DOCKER_COMPOSE_FILES $@
 }
-
 dc_debug() {
     docker -D compose $DOCKER_COMPOSE_FILES $@
+}
+
+# only creates the containers
+dc_create() {
+    dc up $@ --no-start --no-deps -d --remove-orphans
+    _post_create
+}
+dc_debug_create() {
+    dc_debug up $@ --no-start --no-deps -d --remove-orphans
+    _post_debug_create
 }
 
 dc_build() {
@@ -18,47 +27,51 @@ dc_debug_build() {
     BUILDKIT_PROGRESS=plain dc_debug build --no-cache $@
 }
 
-dc_up_build() {
-    _copy_nginx_files
-    dc up $@ --build -d --remove-orphans
-}
-
-dc_force_up() {
-    _copy_nginx_files
-    dc up $@ --build -d --remove-orphans --force-recreate
-}
-
+# Will always build as this step is needed to properly configure the containers before starting them
 dc_up() {
-    _copy_nginx_files
+    dc_create $@ --build
     dc up $@ -d --remove-orphans
+    _post_up
 }
 dc_debug_up() {
-    _copy_nginx_files
+    dc_debug_create $@ --build
     dc_debug up $@ -d --remove-orphans
+    _post_up
+}
+
+
+dc_refresh() {
+    dc_up $@ --force-recreate
 }
 
 dc_restart() {
     dc restart $@
 }
 
-dc_force_restart() {
-    dc_down $@
-    dc_up $@
+dc_down() {
+    dc down $@ --remove-orphans
 }
 
-dc_force_up_logs() {
-    dc_force_up $@
-    dc_logs $@
+dc_down_up() {
+    dc_down $@
+    dc_up $@
 }
 
 dc_logs() {
     dc logs $@ -f
 }
 
+dc_refresh_logs() {
+    dc_refresh $@
+    dc_logs $@
+}
+
+
 dc_exec() {
     dc exec $@
 }
-
+# Only works with running containers
+# dc_view_file private-nginx /etc/nginx/conf.d/default.conf
 dc_view_file() {
     dc_exec $1 cat $2
 }
@@ -72,13 +85,31 @@ dc_enter() {
     dc_exec $@ /bin/sh
 }
 
-dc_down() {
-    # Run with caution on production!
-    # This also destroys the docker bridge networks changing their subnets which are hardcoded into the project in services like grafana!
-    dc down $@ --remove-orphans
-}
 
 ################################################# PRIVATE ##############################################################################################
+
+_post_create() {
+    _copy_nginx_files
+    _copy_private_nginx_files
+}
+_post_debug_create() {
+    _copy_nginx_files
+    _copy_private_nginx_files
+}
+
+_post_up() {
+    dc_exec public-docker-gen docker-gen -notify-sighup public-nginx /etc/docker-gen/templates/default.conf.dtmpl /etc/nginx/conf.d/default.conf
+    dc_exec private-docker-gen docker-gen -notify-sighup private-nginx /etc/docker-gen/templates/default.conf.dtmpl /etc/nginx/conf.d/default.conf
+}
+
+# WARNING: Do not call before ensuring that the required volumes are created
+_copy_nginx_files() {
+    do_volume_rsync ./deployment/services/nginx/public/vhost.d public_nginx_vhostd
+}
+# WARNING: Do not call before ensuring that the required volumes are created
+_copy_private_nginx_files() {
+    do_volume_rsync ./deployment/services/nginx/private/vhost.d private_nginx_vhostd
+}
 
 _dc_remove_all_stopped_containers() {
     dc rm -f
