@@ -32,6 +32,12 @@ services:
       - ./proxy/nginx/proxy.conf:/etc/nginx/proxy.conf
     depends_on:
       - cms
+    networks:
+      - public-1
+      - private-1
+    ports:
+      - "80:80"
+      - "443:443"
     labels:
       logging: "promtail"
       logging_jobname: "docker_compose_logs"

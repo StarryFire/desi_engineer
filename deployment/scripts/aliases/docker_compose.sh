@@ -59,6 +59,15 @@ dc_exec() {
     dc exec $@
 }
 
+dc_view_file() {
+    dc_exec $1 cat $2
+}
+
+# creates a new container and runs a shell in it
+dc_run_enter() {
+    dc run --entrypoint="/bin/sh" $1
+}
+
 dc_enter() {
     dc_exec $@ /bin/sh
 }

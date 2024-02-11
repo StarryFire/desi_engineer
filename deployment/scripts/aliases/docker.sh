@@ -36,12 +36,17 @@ do_run() {
     docker run $@
 }
 
+# creates a new container and runs a shell in it
 do_enter() {
     do_run --entrypoint="/bin/sh" -it $1
 }
 
 do_view_file() {
     docker cp $1:$2 - | tar x -O
+}
+
+do_view_file_in_vim() {
+    docker cp $1:$2 - | tar x -O | vi -
 }
 
 #############################################################  PRIVATE  ##################################################################################
