@@ -13,9 +13,10 @@ DOCKER_COMPOSE_BASE_FILE=deployment/services/base_docker_compose.yaml
 DOCKER_COMPOSE_MONITORING_COLLECTORS_FILE=deployment/services/monitoring_collectors_docker_compose.yaml
 DOCKER_COMPOSE_MONITORING_EXPORTERS_FILE=deployment/services/monitoring_exporters_docker_compose.yaml
 DOCKER_COMPOSE_PROXY_FILE=deployment/services/proxy_docker_compose.yaml
+DOCKER_COMPOSE_PRIVATE_PROXY_FILE=deployment/services/private_proxy_docker_compose.yaml
 DOCKER_COMPOSE_VOLUMES_FILE=deployment/services/volumes_docker_compose.yaml
 DOCKER_COMPOSE_NETWORKS_FILE=deployment/services/networks_docker_compose.yaml
-DOCKER_COMPOSE_FILES="-f $DOCKER_COMPOSE_BASE_FILE -f $DOCKER_COMPOSE_VOLUMES_FILE -f $DOCKER_COMPOSE_NETWORKS_FILE -f $DOCKER_COMPOSE_PROXY_FILE -f $DOCKER_COMPOSE_MONITORING_EXPORTERS_FILE -f $DOCKER_COMPOSE_MONITORING_COLLECTORS_FILE"
+DOCKER_COMPOSE_FILES="-f $DOCKER_COMPOSE_BASE_FILE -f $DOCKER_COMPOSE_VOLUMES_FILE -f $DOCKER_COMPOSE_NETWORKS_FILE -f $DOCKER_COMPOSE_PROXY_FILE -f $DOCKER_COMPOSE_PRIVATE_PROXY_FILE -f $DOCKER_COMPOSE_MONITORING_EXPORTERS_FILE -f $DOCKER_COMPOSE_MONITORING_COLLECTORS_FILE"
 
 # Required to be exported otherwise ansible doesn't pick this up
 export ANSIBLE_CONFIG=deployment/ansible/ansible.cfg

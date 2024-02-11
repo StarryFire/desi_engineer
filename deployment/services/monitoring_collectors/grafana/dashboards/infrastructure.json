@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 2,
   "links": [],
   "liveNow": true,
   "panels": [
@@ -715,7 +715,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "rate(container_network_transmit_bytes_total{name!=\"\"}[$__rate_interval])",
+          "expr": "sum(rate(container_network_transmit_bytes_total{name!=\"\"}[$__rate_interval])) by (name)",
           "hide": false,
           "instant": false,
           "legendFormat": "{{name}}",
@@ -815,7 +815,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "rate(container_network_receive_bytes_total{name!=\"\"}[$__rate_interval])",
+          "expr": "sum(rate(container_network_receive_bytes_total{name!=\"\"}[$__rate_interval])) by (name)",
           "hide": false,
           "instant": false,
           "legendFormat": "{{name}}",
@@ -840,8 +840,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Infrastructure_Test",
-  "uid": "Infrastructure_Test",
-  "version": 61,
+  "title": "Infrastructure",
+  "uid": "cd0e5d0b-8912-49ad-8b3a-c8310e2e03e6",
+  "version": 3,
   "weekStart": ""
 }

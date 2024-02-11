@@ -17,7 +17,7 @@ name: desi_engineer
 services:
   grafana:
     environment:
-      - VIRTUAL_HOST=desi-engineer-1.tail76efa.ts.net
+      - PRIVATE_VIRTUAL_HOST=desi-engineer-1.tail76efa.ts.net
       - VIRTUAL_PORT=3000
       - VIRTUAL_PATH=/grafana/
       - GF_LOG_LEVEL=debug
@@ -56,7 +56,7 @@ services:
 
   uptime-kuma:
     environment:
-      - VIRTUAL_HOST=desi-engineer-1.tail76efa.ts.net
+      - PRIVATE_VIRTUAL_HOST=desi-engineer-1.tail76efa.ts.net
       - VIRTUAL_PORT=3001
       - VIRTUAL_PATH=/uptime-kuma/
     container_name: uptime-kuma

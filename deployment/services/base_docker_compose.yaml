@@ -4,12 +4,13 @@ name: desi_engineer
 services:
   cms:
     environment:
-      - VIRTUAL_HOST=blog.desiengineer.dev
+      - PUBLIC_VIRTUAL_HOST=blog.desiengineer.dev
       - VIRTUAL_PORT=3000
       - VIRTUAL_PATH=/
       - LETSENCRYPT_HOST=blog.desiengineer.dev
       - LETSENCRYPT_RESTART_CONTAINER=true
     container_name: cms
+    image: desiengineer/cms:latest
     build:
       context: ../../
       dockerfile: ./deployment/services/app/cms/Dockerfile

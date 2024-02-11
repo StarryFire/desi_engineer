@@ -132,6 +132,23 @@ deploy_auxillary() {
 
 ################################################## PRIVATE ##############################################################################################
 
+_generate_or_renew_certs() {
+    echo_err "[generating/renewing certificates for desi-engineer-1.tail76efa.ts.net...]"
+    # to generate or renew tailscale https certs in /var/lib/tailscale/certs
+    dc_exec tailscale tailscale cert \
+        --cert-file='/var/lib/tailscale/certs/desi-engineer-1.tail76efa.ts.net.crt' \
+        --key-file='/var/lib/tailscale/certs/desi-engineer-1.tail76efa.ts.net.key' 'desi-engineer-1.tail76efa.ts.net'
+    echo_err "[tailscale certificates generated/renewed successfully for desi-engineer-1.tail76efa.ts.net.]"
+
+    echo_err "[generating/renewing tailscale certificates...]"
+    do_run --rm -it --name certbot \
+        -v "./deployment/services/private_proxy/nginx/data/etc_nginx_certs/letsencrypt:/etc/letsencrypt" \
+        -v "./deployment/secrets/lets_encrypt:/deployment/secrets/lets_encrypt" \
+        certbot/dns-cloudflare certonly -m "desiengineer.dev@gmail.com" --agree-tos --no-eff-email \
+        --dns-cloudflare --dns-cloudflare-credentials /deployment/secrets/lets_encrypt/cloudflare.ini \
+        -d "uptimekuma.desiengineer.dev"
+}
+
 _deploy_helper() {
     echo_err "[running: _deploy_helper $@]"
 
@@ -139,13 +156,8 @@ _deploy_helper() {
 
     _copy_nginx_files
     dc_up_build
-    if [ "$scratch" == "y" ]; then
-        echo_err "[generating tailscale https certificates...]"
-        # to generate tailscale https certs in /var/lib/tailscale/certs
-        dc_exec tailscale tailscale cert \
-            --cert-file='/var/lib/tailscale/certs/desi-engineer-1.tail76efa.ts.net.crt' \
-            --key-file='/var/lib/tailscale/certs/desi-engineer-1.tail76efa.ts.net.key' 'desi-engineer-1.tail76efa.ts.net'
-        echo_err "[tailscale https certificates generated.]"
+    if [ "$generate_or_renew_certs" == "y" ]; then
+        _generate_or_renew_certs
     fi
     dc_exec docker-gen docker-gen -notify-sighup nginx /etc/docker-gen/templates/custom_nginx.tmpl /etc/nginx/conf.d/default.conf
     # cleanup unused images & containers
@@ -197,7 +209,7 @@ _deploy_helper() {
     #     echo_err "[no changes made to auxillary services.]"
     # fi
 
-    # if [ "$scratch" == "y" ]; then
+    # if [ "$generate_or_renew_certs" == "y" ]; then
     #     echo_err "[generating tailscale https certificates...]"
     #     # to generate tailscale https certs in /var/lib/tailscale/certs
     #     dc_exec tailscale tailscale cert \
@@ -229,16 +241,16 @@ _deploy_helper() {
 }
 
 _deploy_parse_args() {
-    LONGOPTS=scratch,fresh
-    SHORTOPTS=s,f
+    LONGOPTS=generate-or-renew-certs,fresh
+    SHORTOPTS=f
     PARSED=$(getopt --options=$SHORTOPTS --longoptions=$LONGOPTS --name "$0" -- "$@")
     eval set -- "$PARSED"
-    scratch=n force=n
+    generate_or_renew_certs=n force=n
     positional_params=()
     while true; do
         case "$1" in
-        -s | --scratch)
-            scratch=y
+        --generate-or-renew-certs)
+            generate_or_renew_certs=y
             shift
             ;;
         -f | --force)
@@ -258,7 +270,7 @@ _deploy_parse_args() {
     shift $((OPTIND - 1))
     positional_params=("$@")
     echo_err "[force is set to $force]"
-    echo_err "[scratch is set to $scratch]"
+    echo_err "[generate_or_renew_certs is set to $generate_or_renew_certs]"
 }
 
 _deploy_script_setup() {

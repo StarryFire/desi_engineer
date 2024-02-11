@@ -1,0 +1,110 @@
+version: "3"
+name: desi_engineer
+
+# References:
+# https://github.com/evertramos/nginx-proxy-automation
+# https://github.com/nginx-proxy/acme-companion/blob/main/docs/Docker-Compose.md
+
+# You can inspect the subnet of default docker bridge by running: netstat -rn or docket network inspect network_name
+# Create a docker network: docker network create network_name
+# Remove a docker network: docker network rm network_name
+# List networks: docker network list
+
+services:
+  ################################################# DYNAMIC NGINX PROXY + SSL CONFIGURATION #########################################################################################
+  private-nginx:
+    container_name: private-nginx
+    image: desiengineer/nginx:latest
+    build:
+      context: ../../
+      dockerfile: ./deployment/services/private_proxy/nginx/Dockerfile
+      args:
+        # Sets the uid and gid of the nginx user inside the container that runs the nginx workers
+        NGINX_UID: 1000
+        NGINX_GID: 1000
+    volumes:
+      - ./private_proxy/nginx/data/etc_nginx_conf.d:/etc/nginx/conf.d
+      - ./private_proxy/nginx/data/etc_nginx_vhost.d:/etc/nginx/vhost.d
+      - ./private_proxy/nginx/data/usr_share_nginx_html:/usr/share/nginx/html
+      - ./private_proxy/nginx/data/etc_nginx_certs:/etc/nginx/certs:ro
+
+      # tailscale-nginx-auth socket from tailscale-nginx-auth container
+      - ./private_proxy/tailscale_nginx_auth/data/run_tailscale.nginx-auth:/run/tailscale.nginx-auth
+
+      - ./private_proxy/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./private_proxy/nginx/proxy.conf:/etc/nginx/proxy.conf
+    # this causes tailscale and nginx to share the same network stack, with tailscale on top of nginx
+    # this essentially means that nginx container is running inside tailscale container from a network's perspective
+    network_mode: service:tailscale
+    depends_on:
+      - grafana
+      - tailscale
+    labels:
+      logging: "promtail"
+      logging_jobname: "docker_compose_logs"
+
+  private-docker-gen:
+    environment:
+      # can cause issues in some setups, hence always hash the upstream name
+      - SHA1_UPSTREAM_NAME=true
+    container_name: private-docker-gen
+    image: nginxproxy/docker-gen:latest
+    command: -notify-sighup private-nginx -watch /etc/docker-gen/templates/custom_nginx.tmpl /etc/nginx/conf.d/default.conf
+    volumes_from:
+      - private-nginx
+    volumes:
+      - ./private_proxy/docker_gen/templates:/etc/docker-gen/templates:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - private-nginx
+    networks:
+      - private-1
+    labels:
+      logging: "promtail"
+      logging_jobname: "docker_compose_logs"
+
+  ##################################################################### TAILSCALE VPN ######################################################################################
+  # services that are supposed to be behind tailscale are still exposed to the internet if you don't separate the proxy into public-proxy and private-proxy and hence this.
+  #
+  # However, even if grafana gets exposed to the internet, nginx internal /auth will block any attempts to access it with a 401 since the request is not
+  # coming via tailscale.
+  tailscale:
+    env_file:
+      - ../secrets/docker/tailscale.txt
+    environment:
+      TS_HOSTNAME: desi-engineer-1
+      TS_AUTH_ONCE: true
+      TS_STATE_DIR: /var/lib/tailscale
+    container_name: tailscale
+    image: tailscale/tailscale:latest
+    healthcheck:
+      test: ["CMD-SHELL", "tailscale status"]
+      interval: 1s
+      timeout: 5s
+      retries: 60
+    volumes:
+      - ./private_proxy/tailscale/data/var_run_tailscale:/var/run/tailscale # contains tailscale socket pointer
+      - ./private_proxy/tailscale/data/tmp:/tmp # contains actual tailscale socket
+      - ./private_proxy/tailscale/data/var_lib_tailscale:/var/lib/tailscale
+
+      - ./private_proxy/nginx/data/etc_nginx_certs:/var/lib/tailscale/certs
+    networks:
+      - private-1
+
+  # Ref: https://tailscale.com/blog/grafana-auth, https://tailscale.com/blog/tailscale-auth-nginx
+  tailscale-nginx-auth:
+    container_name: tailscale-nginx-auth
+    image: desiengineer/tailscale-nginx-auth:latest
+    build:
+      context: ../../
+      dockerfile: ./deployment/services/private_proxy/tailscale_nginx_auth/Dockerfile
+    user: "1000:1000" # id of the user and group inside nginx container
+    volumes:
+      - ./private_proxy/tailscale_nginx_auth/data/run_tailscale.nginx-auth:/run/tailscale.nginx-auth # contains tailscle-nginx-auth socket
+
+      - ./private_proxy/tailscale/data/var_run_tailscale:/var/run/tailscale # contains hard link to actual tailscale socket
+      - ./private_proxy/tailscale/data/tmp:/tmp # contains the actual tailscale socket
+    networks:
+      - private-1
+    depends_on:
+      - tailscale

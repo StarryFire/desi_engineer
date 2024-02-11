@@ -1,0 +1,66 @@
+############### Enables GZIP Compress ###############
+# doesn't work well for already compressed files like jpeg or png
+gzip on;
+# Sends a Vary: Accept-Encoding header to inform the client that it needs to send a different request to get a gzipped version of the file.
+gzip_vary on;
+# Only compress files larger than 1024 bytes. Smaller files cannot be compressed much.
+gzip_min_length 1024;
+# Compress data even for users connected via proxies.
+gzip_proxied expired no-cache no-store private auth;
+
+# Specifies the file types to be compressed.
+gzip_types
+text/javascript application/javascript application/x-javascript
+image/svg+xml
+font/ttf application/x-font-truetype
+text/plain text/css text/xml application/json application/xml application/xml+rss;
+
+# Disables GZIP compression for IE browser versions 1-6, since they do not support GZIP compression
+gzip_disable "MSIE [1-6]\.";
+
+#####################################################################################################################################################################
+# NOTE: When using nginx-proxy/nginx-proxy, the upstream name of the container is: ${VIRTUAL_HOST_HASH}-${VIRTUAL_PATH_HASH}
+# HASH can be calculated using: echo -n "desi-engineer-1.tail76efa.ts.net" | sha1sum | awk '{ print $1 }'
+# Here,
+# desi-engineer-1.tail76efa.ts.net = 451f649f0328cbed40441596b6d547b7a044563a
+# /grafana/ = 766c9ed8d1bbef4ee7e57b9caefe3fece8812e78
+#####################################################################################################################################################################
+
+#####################################################################################################################################################################
+# by default, Nginx will serve regular expression matches in preference to prefix matches.
+# However, it evaluates prefix locations first, allowing for the administer to
+# override this tendency by specifying locations using the = and ^~ modifiers.
+# Reference: https://www.digitalocean.com/community/tutorials/understanding-nginx-server-and-location-block-selection-algorithms
+location /auth {
+    internal;
+
+    proxy_pass http://unix:/run/tailscale.nginx-auth/tailscale.nginx-auth.sock;
+    proxy_pass_request_body off;
+
+    proxy_set_header Host $http_host;
+    proxy_set_header Remote-Addr $remote_addr;
+    proxy_set_header Remote-Port $remote_port;
+    proxy_set_header Original-URI $request_uri;
+}
+
+location ^~ /grafana/ {
+    auth_request /auth;
+    auth_request_set $auth_user $upstream_http_tailscale_user;
+    auth_request_set $auth_name $upstream_http_tailscale_name;
+    auth_request_set $auth_login $upstream_http_tailscale_login;
+    auth_request_set $auth_tailnet $upstream_http_tailscale_tailnet;
+    auth_request_set $auth_profile_picture $upstream_http_tailscale_profile_picture;
+
+    proxy_pass http://451f649f0328cbed40441596b6d547b7a044563a-766c9ed8d1bbef4ee7e57b9caefe3fece8812e78;
+}
+
+location ^~ /uptime-kuma/ {
+    # auth_request /auth;
+    # auth_request_set $auth_user $upstream_http_tailscale_user;
+    # auth_request_set $auth_name $upstream_http_tailscale_name;
+    # auth_request_set $auth_login $upstream_http_tailscale_login;
+    # auth_request_set $auth_tailnet $upstream_http_tailscale_tailnet;
+    # auth_request_set $auth_profile_picture $upstream_http_tailscale_profile_picture;
+
+    proxy_pass http://451f649f0328cbed40441596b6d547b7a044563a-1243647648ec9c50391c76bdadef662f8d3bb839;
+}

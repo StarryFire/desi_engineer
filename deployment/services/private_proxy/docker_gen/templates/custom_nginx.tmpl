@@ -373,10 +373,10 @@ proxy_set_header Proxy "";
      * the creation of fallback servers depends on DEFAULT_HOST, HTTPS_METHOD,
      * and whether there are any missing certs.
      */}}
-{{- range $vhost, $containers := groupByMulti $globals.containers "Env.PUBLIC_VIRTUAL_HOST" "," }}
+{{- range $vhost, $containers := groupByMulti $globals.containers "Env.PRIVATE_VIRTUAL_HOST" "," }}
     {{- $vhost := trim $vhost }}
     {{- if not $vhost }}
-        {{- /* Ignore containers with PUBLIC_VIRTUAL_HOST set to the empty string. */}}
+        {{- /* Ignore containers with PRIVATE_VIRTUAL_HOST set to the empty string. */}}
         {{- continue }}
     {{- end }}
     {{- $certName := first (groupByKeys $containers "Env.CERT_NAME") }}

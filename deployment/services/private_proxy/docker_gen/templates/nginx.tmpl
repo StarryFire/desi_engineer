@@ -17,6 +17,7 @@
 {{- $_ := set $globals "sha1_upstream_name" (parseBool (coalesce $globals.Env.SHA1_UPSTREAM_NAME "false")) }}
 {{- $_ := set $globals "default_root_response" (coalesce $globals.Env.DEFAULT_ROOT "404") }}
 {{- $_ := set $globals "trust_downstream_proxy" (parseBool (coalesce $globals.Env.TRUST_DOWNSTREAM_PROXY "true")) }}
+{{- $_ := set $globals "access_log" (or (and (not $globals.Env.DISABLE_ACCESS_LOGS) "access_log /var/log/nginx/access.log vhost;") "") }}
 {{- $_ := set $globals "enable_ipv6" (parseBool (coalesce $globals.Env.ENABLE_IPV6 "false")) }}
 {{- $_ := set $globals "ssl_policy" (or ($globals.Env.SSL_POLICY) "Mozilla-Intermediate") }}
 {{- $_ := set $globals "vhosts" (dict) }}
@@ -240,6 +241,56 @@
     {{- end }}
 {{- end }}
 
+{{- define "location" }}
+    {{- $override := printf "/etc/nginx/vhost.d/%s_%s_location_override" .Host (sha1 .Path) }}
+    {{- if and (eq .Path "/") (not (exists $override)) }}
+        {{- $override = printf "/etc/nginx/vhost.d/%s_location_override" .Host }}
+    {{- end }}
+    {{- if exists $override }}
+    include {{ $override }};
+    {{- else }}
+        {{- $keepalive := coalesce (first (keys (groupByLabel .Containers "com.github.nginx-proxy.nginx-proxy.keepalive"))) "disabled" }}
+    location {{ .Path }} {
+        {{- if eq .NetworkTag "internal" }}
+        # Only allow traffic from internal clients
+        include /etc/nginx/network_internal.conf;
+        {{- end }}
+
+        {{- if eq .Proto "uwsgi" }}
+        include uwsgi_params;
+        uwsgi_pass {{ trim .Proto }}://{{ trim .Upstream }};
+        {{- else if eq .Proto "fastcgi" }}
+        root {{ trim .VhostRoot }};
+        include fastcgi_params;
+        fastcgi_pass {{ trim .Upstream }};
+            {{- if ne $keepalive "disabled" }}
+        fastcgi_keep_conn on;
+            {{- end }}
+        {{- else if eq .Proto "grpc" }}
+        grpc_pass {{ trim .Proto }}://{{ trim .Upstream }};
+        {{- else if eq .Proto "grpcs" }}
+        grpc_pass {{ trim .Proto }}://{{ trim .Upstream }};
+        {{- else }}
+        proxy_pass {{ trim .Proto }}://{{ trim .Upstream }}{{ trim .Dest }};
+        set $upstream_keepalive {{ if ne $keepalive "disabled" }}true{{ else }}false{{ end }};
+        {{- end }}
+
+        {{- if (exists (printf "/etc/nginx/htpasswd/%s" .Host)) }}
+        auth_basic "Restricted {{ .Host }}";
+        auth_basic_user_file {{ (printf "/etc/nginx/htpasswd/%s" .Host) }};
+        {{- end }}
+
+        {{- if (exists (printf "/etc/nginx/vhost.d/%s_%s_location" .Host (sha1 .Path) )) }}
+        include {{ printf "/etc/nginx/vhost.d/%s_%s_location" .Host (sha1 .Path) }};
+        {{- else if (exists (printf "/etc/nginx/vhost.d/%s_location" .Host)) }}
+        include {{ printf "/etc/nginx/vhost.d/%s_location" .Host}};
+        {{- else if (exists "/etc/nginx/vhost.d/default_location") }}
+        include /etc/nginx/vhost.d/default_location;
+        {{- end }}
+    }
+    {{- end }}
+{{- end }}
+
 {{- define "upstream" }}
 upstream {{ .Upstream }} {
     {{- $servers := 0 }}
@@ -341,6 +392,10 @@ map $proxy_x_forwarded_proto $proxy_x_forwarded_ssl {
 
 gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
+log_format vhost '{{ or $globals.Env.LOG_FORMAT "$host $remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\" \"$upstream_addr\"" }}';
+
+access_log off;
+
 {{- template "ssl_policy" (dict "ssl_policy" $globals.ssl_policy) }}
 error_log /dev/stderr;
 
@@ -373,10 +428,10 @@ proxy_set_header Proxy "";
      * the creation of fallback servers depends on DEFAULT_HOST, HTTPS_METHOD,
      * and whether there are any missing certs.
      */}}
-{{- range $vhost, $containers := groupByMulti $globals.containers "Env.PUBLIC_VIRTUAL_HOST" "," }}
+{{- range $vhost, $containers := groupByMulti $globals.containers "Env.VIRTUAL_HOST" "," }}
     {{- $vhost := trim $vhost }}
     {{- if not $vhost }}
-        {{- /* Ignore containers with PUBLIC_VIRTUAL_HOST set to the empty string. */}}
+        {{- /* Ignore containers with VIRTUAL_HOST set to the empty string. */}}
         {{- continue }}
     {{- end }}
     {{- $certName := first (groupByKeys $containers "Env.CERT_NAME") }}
@@ -442,6 +497,7 @@ proxy_set_header Proxy "";
 server {
     server_name _; # This is just an invalid value which will never trigger on a real hostname.
     server_tokens off;
+    {{ $globals.access_log }}
     http2 on;
         {{- if $fallback_http }}
     listen {{ $globals.external_http_port }}; {{- /* Do not add `default_server` (see comment above). */}}
@@ -513,10 +569,22 @@ server {
     {{- end }}
 
     {{- /*
+         * Get the SERVER_TOKENS defined by containers w/ the same vhost,
+         * falling back to "".
+         */}}
+    {{- $server_tokens := trim (or (first (groupByKeys $containers "Env.SERVER_TOKENS")) "") }}
+
+    {{- /*
          * Get the SSL_POLICY defined by containers w/ the same vhost, falling
          * back to empty string (use default).
          */}}
     {{- $ssl_policy := or (first (groupByKeys $containers "Env.SSL_POLICY")) "" }}
+
+    {{- /*
+         * Get the HSTS defined by containers w/ the same vhost, falling back to
+         * "max-age=31536000".
+         */}}
+    {{- $hsts := or (first (groupByKeys $containers "Env.HSTS")) (or $globals.Env.HSTS "max-age=31536000") }}
 
     {{- /* Get the VIRTUAL_ROOT By containers w/ use fastcgi root */}}
     {{- $vhost_root := or (first (groupByKeys $containers "Env.VIRTUAL_ROOT")) "/var/www/public" }}
@@ -524,21 +592,41 @@ server {
     {{- if and $cert_ok (eq $https_method "redirect") }}
 server {
     server_name {{ $host }};
-    server_tokens off;
+        {{- if $server_tokens }}
+    server_tokens {{ $server_tokens }};
+        {{- end }}
+    {{ $globals.access_log }}
     listen {{ $globals.external_http_port }} {{ $default_server }};
         {{- if $globals.enable_ipv6 }}
     listen [::]:{{ $globals.external_http_port }} {{ $default_server }};
         {{- end }}
 
-        {{- if (exists (printf  "/etc/nginx/vhost.d/http_%s" $host)) }}
-    include {{ printf "/etc/nginx/vhost.d/http_%s" $host }};
+    # Do not HTTPS redirect Let's Encrypt ACME challenge
+    location ^~ /.well-known/acme-challenge/ {
+        auth_basic off;
+        auth_request off;
+        allow all;
+        root /usr/share/nginx/html;
+        try_files $uri =404;
+        break;
+    }
+
+    location / {
+        {{- if eq $globals.external_https_port "443" }}
+        return 301 https://$host$request_uri;
+        {{- else }}
+        return 301 https://$host:{{ $globals.external_https_port }}$request_uri;
         {{- end }}
+    }
 }
     {{- end }}
 
 server {
     server_name {{ $host }};
-    server_tokens off;
+    {{- if $server_tokens }}
+    server_tokens {{ $server_tokens }};
+    {{- end }}
+    {{ $globals.access_log }}
     {{- if $http2 }}
     http2 on;
     {{- end }}
@@ -578,20 +666,18 @@ server {
             {{- end }}
 
             {{- if (exists (printf "/etc/nginx/certs/%s.chain.pem" $cert)) }}
-    # https://www.freecodecamp.org/news/docker-nginx-letsencrypt-easy-secure-reverse-proxy-40165ba3aee2/
-    ssl_ecdh_curve secp384r1;
-    # giving error: "ssl_stapling" ignored, host not found in OCSP responder "r3.o.lencr.org" in the certificate "/etc/nginx/certs/blog.desiengineer.dev.crt"
-    # ssl_stapling on;
-    # ssl_stapling_verify on;
-
+    ssl_stapling on;
+    ssl_stapling_verify on;
     ssl_trusted_certificate {{ printf "/etc/nginx/certs/%s.chain.pem" $cert }};
             {{- end }}
 
-    add_header Strict-Transport-Security "max-age=31536000" always; # may cause issues in firefox
-    add_header X-Frame-Options SAMEORIGIN;
-    add_header X-Content-Type-Options nosniff;
-    add_header X-XSS-Protection "1; mode=block";
-
+            {{- if (not (or (eq $https_method "noredirect") (eq $hsts "off"))) }}
+    set $sts_header "";
+    if ($https) {
+        set $sts_header "{{ trim $hsts }}";
+    }
+    add_header Strict-Transport-Security $sts_header always;
+            {{- end }}
         {{- else if $globals.default_cert_ok }}
     # No certificate found for this vhost, so use the default certificate and
     # return an error code if the user connects via https.
@@ -622,8 +708,46 @@ server {
         {{- end }}
     {{- end }}
 
-        {{- if (exists (printf  "/etc/nginx/vhost.d/https_%s" $host)) }}
-    include {{ printf "/etc/nginx/vhost.d/https_%s" $host }};
+    {{- if (exists (printf "/etc/nginx/vhost.d/%s" $host)) }}
+    include {{ printf "/etc/nginx/vhost.d/%s" $host }};
+    {{- else if (exists "/etc/nginx/vhost.d/default") }}
+    include /etc/nginx/vhost.d/default;
+    {{- end }}
+
+    {{- range $path, $containers := $paths }}
+        {{- /*
+             * Get the VIRTUAL_PROTO defined by containers w/ the same
+             * vhost-vpath, falling back to "http".
+             */}}
+        {{- $proto := trim (or (first (groupByKeys $containers "Env.VIRTUAL_PROTO")) "http") }}
+
+        {{- /*
+             * Get the NETWORK_ACCESS defined by containers w/ the same vhost,
+             * falling back to "external".
+             */}}
+        {{- $network_tag := or (first (groupByKeys $containers "Env.NETWORK_ACCESS")) "external" }}
+        {{- $upstream := $upstream_name }}
+        {{- $dest := "" }}
+        {{- if gt $nPaths 0 }}
+            {{- $sum := sha1 $path }}
+            {{- $upstream = printf "%s-%s" $upstream $sum }}
+            {{- $dest = (or (first (groupByKeys $containers "Env.VIRTUAL_DEST")) "") }}
         {{- end }}
+        {{- template "location" (dict
+            "Path" $path
+            "Proto" $proto
+            "Upstream" $upstream
+            "Host" $host
+            "VhostRoot" $vhost_root
+            "Dest" $dest
+            "NetworkTag" $network_tag
+            "Containers" $containers
+        ) }}
+    {{- end }}
+    {{- if and (not (contains $paths "/")) (ne $globals.default_root_response "none")}}
+    location / {
+        return {{ $globals.default_root_response }};
+    }
+    {{- end }}
 }
 {{- end }}

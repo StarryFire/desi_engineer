@@ -32,11 +32,19 @@ do_cleanup() {
     fi
 }
 
+do_run() {
+    docker run $@
+}
+
 do_enter() {
-    docker run -it $1 /bin/bash
+    do_run --entrypoint="/bin/sh" -it $1
 }
 
 #############################################################  PRIVATE  ##################################################################################
+
+_do_check_file_exists() {
+    docker exec -it $1 sh -c 'test -f $2'
+}
 
 _do_prune_images() {
     _do_script_setup $@

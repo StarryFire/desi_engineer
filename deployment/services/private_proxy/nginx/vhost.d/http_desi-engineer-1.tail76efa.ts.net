@@ -1,0 +1,3 @@
+location / {
+    return 301 https://desi-engineer-1.tail76efa.ts.net$request_uri;
+}
