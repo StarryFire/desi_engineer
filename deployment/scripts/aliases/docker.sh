@@ -54,47 +54,120 @@ do_run() {
 # Example: do_volume_cp ./deployment/services/proxy/nginx/vhost.d private_nginx_vhostd 
 do_volume_cp() {
     readarray -d ':' -t from < <(printf "%s" $1)
-    from_dir="${from[0]}" # volume or directory on host
-    from_sub_path="" # absolute path to source relative to volume/directory on host
+    source_resource="${from[0]}" # volume or directory on host
+    source_path="/from" # absolute path to source inside source_resource
     if [ ${#from[@]} -eq 2 ]; then
-        from_sub_path="${from[1]}";
+        source_path+="${from[1]}";
+    elif [ ${#from[@]} -eq 1 ]; then
+        source_path+='/.';
+    else
+        exit 1;
     fi
 
     readarray -d ':' -t to < <(printf "%s" $2)
-    to_dir="${to[0]}"  # volume or directory on host
-    to_sub_path="" # absolute path to destination relative to volume/directory on host
-    to_sub_path_parent_dir=""
+    destination_resource="${to[0]}"  # volume or directory on host
+    destination_path="/to" # absolute path to destination inside destination_resource
     if [ ${#to[@]} -eq 2 ]; then
-        to_sub_path="${to[1]}";
-        to_sub_path_parent_dir="$(dirname $to_sub_path)";
+        destination_path+="${to[1]}";
+    elif [ ${#to[@]} -eq 1 ]; then
+        destination_path+='';
+    else
+        exit 1;
     fi
+    
+    destination_parentdir="$(dirname $destination_path)";
+    if [ "$destination_parentdir" == "/" ]; then
+        destination_parentdir="/to"
+    fi
+
+    cmd=""
+    # do not attempt to create /to since it already exists
+    if [ "$destination_parentdir" != "/to" ]; then
+        cmd+="mkdir -p $destination_parentdir && "
+    fi
+    cmd+="cp -r $source_path $destination_path"
+
     set -x
-    docker run --name volume-copy-utility --rm -v $from_dir:/from -v $to_dir:/to busybox sh -c "mkdir -p /to$to_sub_path_parent_dir && cp -r /from$from_sub_path /to$to_sub_path"
+    docker run --name volume-copy-utility --rm -v $source_resource:/from -v $destination_resource:/to \
+    busybox sh -c "$cmd"
     set +x
 }
+
+# do_volume_rsync lets_encrypt_etc:/live/. test:/x
 do_volume_rsync() {
-    from=$1
-    to=$2
-    docker run --name volume-rsync-utility --rm -v $from:/from -v $to:/to busybox sh -c "rm -rf /to/* && cp -r /from/. /to"
+    readarray -d ':' -t from < <(printf "%s" $1)
+    source_resource="${from[0]}" # volume or directory on host
+    source_path="/from" # absolute path to source inside source_resource
+    if [ ${#from[@]} -eq 2 ]; then
+        source_path+="${from[1]}";
+    elif [ ${#from[@]} -eq 1 ]; then
+        source_path+='/.';
+    else
+        exit 1;
+    fi
+
+    readarray -d ':' -t to < <(printf "%s" $2)
+    destination_resource="${to[0]}"  # volume or directory on host
+    destination_path="/to" # absolute path to destination inside destination_resource
+    if [ ${#to[@]} -eq 2 ]; then
+        destination_path+="${to[1]}";
+    elif [ ${#to[@]} -eq 1 ]; then
+        destination_path+='';
+    else
+        exit 1;
+    fi
+    
+    destination_parentdir="$(dirname $destination_path)";
+    if [ "$destination_parentdir" == "/" ]; then
+        destination_parentdir="/to"
+    fi
+
+    cmd=""
+    # do not attempt to create /to since it already exists
+    if [ "$destination_parentdir" != "/to" ]; then
+        cmd+="mkdir -p $destination_parentdir && "
+    fi
+    # do not delete the /to itself since it is mounted against the destination_resource
+    if [ "$destination_path" != "/to" ]; then
+        cmd+="rm -rf $destination_path && "
+    else
+        cmd+="rm -rf /to/* && "
+    fi
+    cmd+="cp -r $source_path $destination_path"
+
+    set -x
+    docker run --name volume-copy-utility --rm -v $source_resource:/from -v $destination_resource:/to \
+    busybox sh -c "$cmd"
+    set +x
 }
 
 # Run this to delete data from volume
 do_volume_rm() {
     readarray -d ':' -t resource < <(printf "%s" $1)
-    resource_volume="${resource[0]}" # volume or directory on host
-    resource_volume_path='/*' # absolute path to the resource relative to volume
+    resource="${resource[0]}" # volume or directory on host
+    resource_path='/resource' # absolute path to the file/directory inside resource
     if [ ${#resource[@]} -eq 2 ]; then
-        resource_volume_path="${resource[1]}";
+        resource_path+="${resource[1]}";
+    elif [ ${#resource[@]} -eq 1 ]; then
+        resource_path+='/*'
+    else
+        exit 1;
     fi
-    docker run --name volume-rm-utility --rm -v $resource_volume:/$resource_volume busybox sh -c "rm -rf /$resource_volume$resource_volume_path"
+    docker run --name volume-rm-utility --rm -v $resource:/resource busybox sh -c "rm -rf $resource_path"
 }
 
 do_volume_inspect() {
+    if [ $# -ne 1 ]; then
+        exit 1
+    fi
     set -x
     sudo ls -l /var/lib/docker/volumes/$1/_data
     set +x
 }
 do_volume_mount() {
+    if [ $# -ne 1 ]; then
+        exit 1
+    fi
     docker run --name volume-mount-utility --rm -it -v $1:/$1 -w /$1 busybox sh
 }
 do_volume_ls() {
@@ -102,17 +175,26 @@ do_volume_ls() {
 }
 
 do_rm_volume() {
+    if [ $# -ne 1 ]; then
+        exit 1
+    fi
     docker volume rm $1
 }
 
 # creates a new container and runs a shell in it
 do_enter() {
+    if [ $# -ne 1 ]; then
+        exit 1
+    fi
     do_run --entrypoint="/bin/sh" -it $1
 }
 
 # Works with both running and stopped containers 
 # do_view_file private-nginx /etc/nginx/conf.d/default.conf
 do_view_file() {
+    if [ $# -ne 2 ]; then
+        exit 1
+    fi
     docker cp $1:$2 - | tar x -O
 }
 # do_view_file_in_vim private-nginx /etc/nginx/conf.d/default.conf
