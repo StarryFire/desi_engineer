@@ -53,29 +53,52 @@ do_run() {
 # Run this to copy data from host to volume or from volume to volume
 # Example: do_volume_cp ./deployment/services/proxy/nginx/vhost.d private_nginx_vhostd 
 do_volume_cp() {
-    from=$1
-    to=$2
-    docker run --name copy-utility --rm -v $from:/from -v $to:/to busybox cp -r /from/. /to
+    readarray -d ':' -t from < <(printf "%s" $1)
+    from_dir="${from[0]}" # volume or directory on host
+    from_sub_path="" # absolute path to source relative to volume/directory on host
+    if [ ${#from[@]} -eq 2 ]; then
+        from_sub_path="${from[1]}";
+    fi
+
+    readarray -d ':' -t to < <(printf "%s" $2)
+    to_dir="${to[0]}"  # volume or directory on host
+    to_sub_path="" # absolute path to destination relative to volume/directory on host
+    to_sub_path_parent_dir=""
+    if [ ${#to[@]} -eq 2 ]; then
+        to_sub_path="${to[1]}";
+        to_sub_path_parent_dir="$(dirname $to_sub_path)";
+    fi
+    set -x
+    docker run --name volume-copy-utility --rm -v $from_dir:/from -v $to_dir:/to busybox sh -c "mkdir -p /to$to_sub_path_parent_dir && cp -r /from$from_sub_path /to$to_sub_path"
+    set +x
 }
 do_volume_rsync() {
     from=$1
     to=$2
-    docker run --name rsync-utility --rm -v $from:/from -v $to:/to busybox sh -c "rm -rf /to/* && cp -r /from/. /to"
+    docker run --name volume-rsync-utility --rm -v $from:/from -v $to:/to busybox sh -c "rm -rf /to/* && cp -r /from/. /to"
 }
 
 # Run this to delete data from volume
 do_volume_rm() {
-    docker run --name remove-utility --rm -v $1:/to_be_removed busybox sh -c "rm -rf to_be_removed/$2"
-}
-# because we can't pass "*" as an argument to a bash command without the shell automatically expanding it
-do_volume_rm_all() {
-    docker run --name remove-utility --rm -v $1:/to_be_removed busybox sh -c "rm -rf /to_be_removed/*"
+    readarray -d ':' -t resource < <(printf "%s" $1)
+    resource_volume="${resource[0]}" # volume or directory on host
+    resource_volume_path='/*' # absolute path to the resource relative to volume
+    if [ ${#resource[@]} -eq 2 ]; then
+        resource_volume_path="${resource[1]}";
+    fi
+    docker run --name volume-rm-utility --rm -v $resource_volume:/$resource_volume busybox sh -c "rm -rf /$resource_volume$resource_volume_path"
 }
 
-do_inspect_volume() {
+do_volume_inspect() {
     set -x
     sudo ls -l /var/lib/docker/volumes/$1/_data
     set +x
+}
+do_volume_mount() {
+    docker run --name volume-mount-utility --rm -it -v $1:/$1 -w /$1 busybox sh
+}
+do_volume_ls() {
+    docker volume ls
 }
 
 do_rm_volume() {

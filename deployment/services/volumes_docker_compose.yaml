@@ -47,3 +47,6 @@ volumes:
   acme_companion_etc:
     name: acme_companion_etc
     driver: local
+  
+  lets_encrypt_etc:
+    external: true

@@ -19,7 +19,7 @@ services:
     environment:
       - PRIVATE_VIRTUAL_HOST=desi-engineer-1.tail76efa.ts.net
       - VIRTUAL_PORT=3000
-      - VIRTUAL_PATH=/grafana/
+      - VIRTUAL_PATH=/
       - GF_LOG_LEVEL=debug
 
     # If you want to give unrestricted and anonymous access to Grafana, uncomment the following lines
@@ -44,7 +44,7 @@ services:
 
   loki:
     container_name: loki
-    image: grafana/loki:2.9.4
+    image: grafana/loki:latest
     command: -config.file=/mnt/config/config.yaml
     volumes:
       - ./monitoring_collectors/loki/config.yaml:/mnt/config/config.yaml:ro
@@ -56,9 +56,9 @@ services:
 
   uptime-kuma:
     environment:
-      - PRIVATE_VIRTUAL_HOST=desi-engineer-1.tail76efa.ts.net
+      - PRIVATE_VIRTUAL_HOST=uptime-kuma.desiengineer.dev
       - VIRTUAL_PORT=3001
-      - VIRTUAL_PATH=/uptime-kuma/
+      - VIRTUAL_PATH=/
     container_name: uptime-kuma
     image: louislam/uptime-kuma:latest
     volumes:

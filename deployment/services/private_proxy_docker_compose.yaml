@@ -32,7 +32,8 @@ services:
       - tailscale_nginx_auth_run:/run/tailscale.nginx-auth
 
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/configs:/etc/nginx/configs
+      - ./nginx/njs:/etc/nginx/njs
     # this causes tailscale and nginx to share the same network stack, with tailscale on top of nginx
     # this essentially means that nginx container is running inside tailscale container from a network's perspective
     network_mode: service:tailscale

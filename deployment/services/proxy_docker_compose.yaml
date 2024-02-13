@@ -29,7 +29,7 @@ services:
       - public_nginx_certs:/etc/nginx/certs:ro
 
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/configs:/etc/nginx/configs
     depends_on:
       - cms
     networks:

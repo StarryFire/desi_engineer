@@ -60,6 +60,12 @@ dc_down_up() {
 dc_logs() {
     dc logs $@ -f
 }
+dc_error_logs() {
+    dc_logs $@ 1>/dev/null
+}
+dc_stdout_logs() {
+    dc_logs $@ 2>/dev/null
+}
 
 dc_refresh_logs() {
     dc_refresh $@
@@ -85,6 +91,16 @@ dc_enter() {
     dc_exec $@ /bin/sh
 }
 
+# make sure to uncomment the mirror directive in nginx config before running this
+dc_show_nginx_upstream_requests() {
+    # Install netcat inside the container
+    dc_exec private-nginx apt-get update
+    dc_exec private-nginx apt-get install netcat-openbsd
+
+    # Run netcat
+    dc_exec private-nginx nc -kl 6677 > /dev/stdout
+}
+
 
 ################################################# PRIVATE ##############################################################################################
 
@@ -98,6 +114,10 @@ _post_debug_create() {
 }
 
 _post_up() {
+    _refresh_nginx_config_files
+}
+
+_refresh_nginx_config_files() {
     dc_exec public-docker-gen docker-gen -notify-sighup public-nginx /etc/docker-gen/templates/default.conf.dtmpl /etc/nginx/conf.d/default.conf
     dc_exec private-docker-gen docker-gen -notify-sighup private-nginx /etc/docker-gen/templates/default.conf.dtmpl /etc/nginx/conf.d/default.conf
 }
