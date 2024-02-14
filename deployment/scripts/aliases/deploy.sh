@@ -132,46 +132,6 @@ deploy() {
 
 ################################################## PRIVATE ##############################################################################################
 
-_generate_or_renew_certs() {
-    _generate_or_renew_private_host_certs
-    _generate_or_renew_public_host_certs
-    _refresh_nginx_config_files
-}
-
-_generate_or_renew_public_host_certs() {
-    echo "TODO"
-}
-
-_generate_or_renew_private_host_certs() {
-    echo_err "[generating/renewing private hosts certificates...]"
-    _generate_or_renew_tailscale_host_cert "desi-engineer-1.tail76efa.ts.net"
-    _generate_or_renew_cloudflare_host_cert "uptime-kuma.desiengineer.dev"
-    echo_err "[successfully generated/renewed private hosts certificates.]"
-}
-
-_generate_or_renew_tailscale_host_cert() {
-    domain=$1
-    echo_err "[generating/renewing certificates for $domain...]"
-    # to generate or renew tailscale https certs in /var/lib/tailscale/certs
-    dc_exec tailscale tailscale cert \
-        --cert-file="/var/lib/tailscale/certs/$domain.crt" \
-        --key-file="/var/lib/tailscale/certs/$domain.key" \
-        "$domain"
-    echo_err "[tailscale certificates generated/renewed successfully for $domain.]"
-}
-
-# _generate_or_renew_cloudflare_host_cert "uptime-kuma.desiengineer.dev" --dry-run
-_generate_or_renew_cloudflare_host_cert() {
-    domain=$1
-    extra_args=$2
-    do_run --rm -it --name certbot \
-        -v "test:/etc/letsencrypt" \
-        -v "./deployment/secrets/lets_encrypt:/deployment/secrets/lets_encrypt" \
-        certbot/dns-cloudflare certonly -n -m "desiengineer.dev@gmail.com" --agree-tos --no-eff-email \
-        --dns-cloudflare --dns-cloudflare-credentials /deployment/secrets/lets_encrypt/cloudflare.ini \
-        -d "$domain" $extra_args
-}
-
 _deploy_helper() {
     echo_err "[running: _deploy_helper $@]"
 

@@ -13,6 +13,7 @@ join() {
 }
 
 # test_statement '1 == 2'
+# test_statement '-f ./go.sum'
 test_statement() {
     statement=$1
     eval "test $statement" && echo_err "true" || echo_err "false"

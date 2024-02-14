@@ -40,46 +40,51 @@ load_all_aliases() {
 
 ############################################# PRIVATE ########################################################################################
 
-_print_stack() {
-    local err=$1
-    local stack_size=${#FUNCNAME[@]}
-
-    if [ $stack_size -gt 2 ]; then
-        # to avoid noise we start with 2 to remove the _print_stack & handle_error functions from the final error trace
-        local -i i
-        i=2
-        local function_name_where_error_occured=${FUNCNAME[$i]}
-        local -i line_no_where_error_occured=${BASH_LINENO[$((i - 1))]}
-        local file_name_where_error_occured="${BASH_SOURCE[$i]}"
-        local -a stack=("Stack Trace: parent_shell_pid: ($$) subshell_pid: ($BASHPID)")
-        stack+=("    ($((i - 2))) $function_name_where_error_occured $file_name_where_error_occured:$line_no_where_error_occured")
-        i+=1
-        for ((i = 3; i < stack_size; i++)); do
-            local func="${FUNCNAME[$i]}"
-            local -i line="${BASH_LINENO[$((i - 1))]}"
-            local src="${BASH_SOURCE[$i]}"
-            stack+=("    ($((i - 2))) $func")
-        done
-        (
-            IFS=$'\n'
-            echo_err "${stack[*]}"
-        )
-    fi
-
-    exit $err
-}
-
-# run this in the shell where you want scripts to exit as soon as they encounter an error and then print a stacktrace
-function _debug() {
+_set_debug_flags() {
     set -o pipefail
     set -u
     set -e # exits on error
 
     set -E
+}
+
+# run this in the shell where you want scripts to exit as soon as they encounter an error and then print a stacktrace
+_debug() {
+    _set_debug_flags
 
     trap 'handle_error' ERR
     trap 'handle_interrupt' INT
     # trap 'handle_exit' EXIT
+
+
+    _print_stack() {
+        local err=$1
+        local stack_size=${#FUNCNAME[@]}
+
+        if [ $stack_size -gt 2 ]; then
+            # to avoid noise we start with 2 to remove the _print_stack & handle_error functions from the final error trace
+            local -i i
+            i=2
+            local function_name_where_error_occured=${FUNCNAME[$i]}
+            local -i line_no_where_error_occured=${BASH_LINENO[$((i - 1))]}
+            local file_name_where_error_occured="${BASH_SOURCE[$i]}"
+            local -a stack=("Stack Trace: parent_shell_pid: ($$) subshell_pid: ($BASHPID)")
+            stack+=("    ($((i - 2))) $function_name_where_error_occured $file_name_where_error_occured:$line_no_where_error_occured")
+            i+=1
+            for ((i = 3; i < stack_size; i++)); do
+                local func="${FUNCNAME[$i]}"
+                local -i line="${BASH_LINENO[$((i - 1))]}"
+                local src="${BASH_SOURCE[$i]}"
+                stack+=("    ($((i - 2))) $func")
+            done
+            (
+                IFS=$'\n'
+                echo_err "${stack[*]}"
+            )
+        fi
+
+        exit $err
+    }
 
     error_occurred=0
     handle_error() {

@@ -1,15 +1,6 @@
 version: "3"
 name: desi_engineer
 
-# References:
-# https://github.com/evertramos/nginx-proxy-automation
-# https://github.com/nginx-proxy/acme-companion/blob/main/docs/Docker-Compose.md
-
-# You can inspect the subnet of default docker bridge by running: netstat -rn or docket network inspect network_name
-# Create a docker network: docker network create network_name
-# Remove a docker network: docker network rm network_name
-# List networks: docker network list
-
 services:
   ################################################# DYNAMIC NGINX PROXY + SSL CONFIGURATION #########################################################################################
   private-nginx:
@@ -87,8 +78,6 @@ services:
       - tailscale_run:/var/run/tailscale # contains tailscale socket pointer
       - tailscale_tmp:/tmp # contains actual tailscale socket
       - tailscale_lib:/var/lib/tailscale
-
-      - private_nginx_certs:/var/lib/tailscale/certs
     networks:
       - private-1
 

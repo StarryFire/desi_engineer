@@ -156,6 +156,7 @@ do_volume_rm() {
     docker run --name volume-rm-utility --rm -v $resource:/resource busybox sh -c "rm -rf $resource_path"
 }
 
+# do_volume_inspect lets_encrypt_etc
 do_volume_inspect() {
     if [ $# -ne 1 ]; then
         exit 1
@@ -164,6 +165,7 @@ do_volume_inspect() {
     sudo ls -l /var/lib/docker/volumes/$1/_data
     set +x
 }
+# do_volume_mount lets_encrypt_etc
 do_volume_mount() {
     if [ $# -ne 1 ]; then
         exit 1

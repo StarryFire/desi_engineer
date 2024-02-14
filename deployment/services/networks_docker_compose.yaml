@@ -1,3 +1,8 @@
+# You can inspect the subnet of default docker bridge by running: netstat -rn or docket network inspect network_name
+# Create a docker network: docker network create network_name
+# Remove a docker network: docker network rm network_name
+# List networks: docker network list
+
 version: "3"
 networks:
   public-1:
