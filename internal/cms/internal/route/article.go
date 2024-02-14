@@ -7,6 +7,6 @@ import (
 )
 
 func AppendArticleRoutes(r *echo.Group) {
-	articlePageRoute := r.GET(":slug", controller.ServeArticlePage)
+	articlePageRoute := r.GET("/:slug", controller.ServeArticlePage)
 	articlePageRoute.Name = projectconstant.ARTICLE_PAGE_ROUTE_NAME
 }

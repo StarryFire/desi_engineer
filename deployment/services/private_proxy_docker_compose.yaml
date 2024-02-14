@@ -30,7 +30,6 @@ services:
     network_mode: service:tailscale
     depends_on:
       - grafana
-      - tailscale
     labels:
       logging: "promtail"
       logging_jobname: "docker_compose_logs"
@@ -60,6 +59,15 @@ services:
   #
   # However, even if grafana gets exposed to the internet, nginx internal /auth will block any attempts to access it with a 401 since the request is not
   # coming via tailscale.
+  #
+  # Ref: 
+  # - https://www.reddit.com/r/Tailscale/comments/15f8cbc/comment/kaozlvy/?utm_source=share&utm_medium=web2x&context=3
+  # - https://hub.docker.com/r/tailscale/tailscale (bottom, FAQ section)
+  # There are two modes in tailscale:
+  # Userspace Networking: In this mode, the tailscale container can accept incoming connections but cannot initiate outgoing connections to other tailscale hosts (via other processes)
+  # for eg. only "tailscale ping 100.127.254.120" would work and not "ping 100.127.254.120" i.e. only pings initiated via the tailscale process to other tailscale hosts would work.
+  # Also MagicDNS resolution won't work either in the above mode.
+  # Kernel Networking: In this mode, the above problems are solved.
   tailscale:
     env_file:
       - ../secrets/docker/tailscale.txt
@@ -67,6 +75,17 @@ services:
       TS_HOSTNAME: desi-engineer-1
       TS_AUTH_ONCE: true
       TS_STATE_DIR: /var/lib/tailscale
+      # So that you can connect to other tailscale hosts from containers via the tailscale container
+      # eg. curl -x tailscale:1055 https://desi-engineer-1.tail76efa.ts.net/api/health
+      TS_OUTBOUND_HTTP_PROXY_LISTEN: "0.0.0.0:1055" # supports only http/https protocols
+      #
+      # curl --socks5-hostname tailscale:1055 https://desi-engineer-1.tail76efa.ts.net/api/health
+      # TS_SOCKS5_SERVER: "0.0.0.0:1055" # supports more protocols
+      TS_ACCEPT_DNS: true
+      TS_USERSPACE: false # needed for kernel networking mode
+    cap_add:
+      - net_admin # needed for kernel networking mode
+      - sys_module # needed for kernel networking mode
     container_name: tailscale
     image: tailscale/tailscale:latest
     healthcheck:
@@ -78,6 +97,8 @@ services:
       - tailscale_run:/var/run/tailscale # contains tailscale socket pointer
       - tailscale_tmp:/tmp # contains actual tailscale socket
       - tailscale_lib:/var/lib/tailscale
+
+      - /dev/net/tun:/dev/net/tun # needed for kernel networking mode
     networks:
       - private-1
 
@@ -89,9 +110,9 @@ services:
       context: ../../
       dockerfile: ./deployment/services/tailscale_nginx_auth/Dockerfile
       args:
-          # Sets the uid and gid of the nginx user inside the container that runs the nginx workers
-          NGINX_UID: 1000
-          NGINX_GID: 1000
+        # Sets the uid and gid of the nginx user inside the container that runs the nginx workers
+        NGINX_UID: 1000
+        NGINX_GID: 1000
     volumes:
       - tailscale_nginx_auth_run:/run/tailscale.nginx-auth # contains tailscle-nginx-auth socket
 
