@@ -10,16 +10,18 @@ import "context"
 import "io"
 import "bytes"
 
-import (
-	"fmt"
-	"github.com/starryfire/desi_engineer/config/projectconstant"
-	"github.com/starryfire/desi_engineer/internal/datatype"
-	"github.com/starryfire/desi_engineer/internal/layout"
-	"github.com/starryfire/desi_engineer/internal/templutil"
-	"github.com/starryfire/desi_engineer/internal/util"
-)
+import "github.com/starryfire/desi_engineer/internal/layout"
+import "github.com/starryfire/desi_engineer/config/projectconstant"
+import "github.com/starryfire/desi_engineer/internal/templutil"
+import "fmt"
+import "github.com/starryfire/desi_engineer/internal/util"
+import "github.com/starryfire/desi_engineer/config/blogconfig"
 
-func ArticleSEOMetaTags(title string, description string, slug datatype.ArticleSlug) templ.Component {
+type HomePageProps struct {
+	HomeMainContentProps
+}
+
+func HomeSEOMetaTags(title string, description string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -39,7 +41,7 @@ func ArticleSEOMetaTags(title string, description string, slug datatype.ArticleS
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/cms/internal/view/article_page.templ`, Line: 12, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/blog/internal/view/home_page.templ`, Line: 14, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -65,7 +67,7 @@ func ArticleSEOMetaTags(title string, description string, slug datatype.ArticleS
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(util.GetFullURL(templutil.GetEchoReverseURL(ctx, projectconstant.ARTICLE_PAGE_ROUTE_NAME, slug.URLSlug()))))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(util.GetFullURL(templutil.GetEchoReverseURL(ctx, projectconstant.HOME_PAGE_ROUTE_NAME))))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -80,7 +82,7 @@ func ArticleSEOMetaTags(title string, description string, slug datatype.ArticleS
 	})
 }
 
-func ArticleSocialMediaMetaTags(title string, description string, slug datatype.ArticleSlug) templ.Component {
+func HomeSocialMediaMetaTags(title string, description string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -125,9 +127,8 @@ func ArticleSocialMediaMetaTags(title string, description string, slug datatype.
 			return templ_7745c5c3_Err
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(util.GetFullURL(fmt.Sprintf(
-			"%s?slug=%s&media_type=og",
+			"%s?media_type=og",
 			templutil.GetEchoReverseURL(ctx, projectconstant.SOCIAL_MEDIA_POST_IMAGE_ROUTE_NAME),
-			slug.URLSlug(),
 		))))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -136,9 +137,9 @@ func ArticleSocialMediaMetaTags(title string, description string, slug datatype.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(util.GetFullURL(
-			templutil.GetEchoReverseURL(ctx, projectconstant.ARTICLE_PAGE_ROUTE_NAME, slug.URLSlug()),
-		)))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(util.GetFullURL(fmt.Sprintf(
+			templutil.GetEchoReverseURL(ctx, projectconstant.HOME_PAGE_ROUTE_NAME),
+		))))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -175,9 +176,8 @@ func ArticleSocialMediaMetaTags(title string, description string, slug datatype.
 			return templ_7745c5c3_Err
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(util.GetFullURL(fmt.Sprintf(
-			"%s?slug=%s&media_type=twitter",
+			"%s?media_type=twitter",
 			templutil.GetEchoReverseURL(ctx, projectconstant.SOCIAL_MEDIA_POST_IMAGE_ROUTE_NAME),
-			slug.URLSlug(),
 		))))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -211,7 +211,7 @@ func ArticleSocialMediaMetaTags(title string, description string, slug datatype.
 	})
 }
 
-func ArticleMetaTags(title string, description string, slug datatype.ArticleSlug) templ.Component {
+func HomeMetaTags(title string, description string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -224,11 +224,11 @@ func ArticleMetaTags(title string, description string, slug datatype.ArticleSlug
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = ArticleSEOMetaTags(title, description, slug).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = HomeSEOMetaTags(title, description).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = ArticleSocialMediaMetaTags(title, description, slug).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = HomeSocialMediaMetaTags(title, description).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -239,14 +239,7 @@ func ArticleMetaTags(title string, description string, slug datatype.ArticleSlug
 	})
 }
 
-type ArticlePageProps struct {
-	Title                   string
-	Description             string
-	Slug                    datatype.ArticleSlug
-	ArticleMainContentProps ArticleMainContentProps
-}
-
-func ArticlePage(props ArticlePageProps) templ.Component {
+func HomePage(props HomePageProps) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -260,9 +253,9 @@ func ArticlePage(props ArticlePageProps) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = layout.Base(layout.BaseProps{
-			Main:          ArticleMainContent(props.ArticleMainContentProps),
+			Main:          HomeMainContent(props.HomeMainContentProps),
 			Header:        layout.Header(),
-			ExtraMetaTags: ArticleMetaTags(props.Title, props.Description, props.Slug),
+			ExtraMetaTags: HomeMetaTags(blogconfig.HOME_PAGE_TITLE, blogconfig.HOME_PAGE_DESCRIPTION),
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

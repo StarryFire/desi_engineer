@@ -79,30 +79,30 @@ deploy() {
 #     echo_err "[nginx deployed successfully.]"
 # }
 
-# deploy_cms() {
-#     dc_up_build cms
+# deploy_blog() {
+#     dc_up_build blog
 
-#     cms_container_id=$(_dc_container_id cms)
-#     if [ "$cms_container_id" == "" ]; then
-#         echo_err "[cms service is not running!]"
+#     blog_container_id=$(_dc_container_id blog)
+#     if [ "$blog_container_id" == "" ]; then
+#         echo_err "[blog service is not running!]"
 #         exit 1
 #     fi
-#     status=$(_do_container_status $cms_container_id)
-#     health_status=$(_do_container_health_status $cms_container_id)
+#     status=$(_do_container_status $blog_container_id)
+#     health_status=$(_do_container_health_status $blog_container_id)
 #     while [ "$health_status" == "starting" ]; do
-#         health_status=$(_do_container_health_status $cms_container_id)
-#         echo_err "[waiting for cms service to start...]"
+#         health_status=$(_do_container_health_status $blog_container_id)
+#         echo_err "[waiting for blog service to start...]"
 #         sleep 5s
 #     done
 
 #     if [ "$status" == "running" ] && [ "$health_status" == "healthy" ]; then
-#         echo_err "[cms service is running.]"
+#         echo_err "[blog service is running.]"
 #     else
-#         echo_err "[cms service is not running!]"
+#         echo_err "[blog service is not running!]"
 #         echo_err "[status: $status, health_status: $health_status]"
 #         exit 1
 #     fi
-#     echo_err "[cms deployed successfully.]"
+#     echo_err "[blog deployed successfully.]"
 # }
 
 # deploy_auxillary() {
@@ -147,9 +147,9 @@ _deploy_helper() {
 
     echo_err "[success.]"
 
-    # cms_changed="false"
-    # if [ $(git diff $LOCAL_HASH..$REMOTE_HASH -- . ':!deployment' 'deployment/services/app/cms' | wc -c) -gt 0 ]; then
-    #     cms_changed="true"
+    # blog_changed="false"
+    # if [ $(git diff $LOCAL_HASH..$REMOTE_HASH -- . ':!deployment' 'deployment/services/app/blog' | wc -c) -gt 0 ]; then
+    #     blog_changed="true"
     # fi
 
     # nginx_config_changed="false"
@@ -158,22 +158,22 @@ _deploy_helper() {
     # fi
 
     # auxillary_changed="false"
-    # if [ $(git diff $LOCAL_HASH..$REMOTE_HASH -- 'deployment/services' ':!deployment/services/app/cms' ':!deployment/services/proxy/nginx' | wc -c) -gt 0 ]; then
+    # if [ $(git diff $LOCAL_HASH..$REMOTE_HASH -- 'deployment/services' ':!deployment/services/app/blog' ':!deployment/services/proxy/nginx' | wc -c) -gt 0 ]; then
     #     auxillary_changed="true"
     # fi
 
-    # if [ "$cms_changed" == "true" ] || [ "$force" == "y" ]; then
-    #     if [ "$cms_changed" == "true" ]; then
-    #         echo_err "[cms changes detected.]"
+    # if [ "$blog_changed" == "true" ] || [ "$force" == "y" ]; then
+    #     if [ "$blog_changed" == "true" ]; then
+    #         echo_err "[blog changes detected.]"
     #     else
-    #         echo_err "[no changes detected in cms.]"
+    #         echo_err "[no changes detected in blog.]"
     #     fi
     #     if [ "$force" == "y" ]; then
-    #         echo_err "[forcing cms deployment...]"
+    #         echo_err "[forcing blog deployment...]"
     #     fi
-    #     deploy_cms
+    #     deploy_blog
     # else
-    #     echo_err "[no changes made to cms.]"
+    #     echo_err "[no changes made to blog.]"
     # fi
 
     # if [ "$auxillary_changed" == "true" ] || [ "$force" == "y" ]; then

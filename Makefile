@@ -66,7 +66,7 @@ endef
 
 # -include tasks/*.mk
 
-# IMAGES := cms tailscale nginx
+# IMAGES := blog tailscale nginx
 # IMAGE_TARGETS := $(foreach path,$(IMAGES),docker/$(path))
 
 # ## builds images

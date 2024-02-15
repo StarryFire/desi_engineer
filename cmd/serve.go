@@ -28,7 +28,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/starryfire/desi_engineer/config/projectconfig"
 	"github.com/starryfire/desi_engineer/config/projectconstant"
-	"github.com/starryfire/desi_engineer/internal/cms"
+	"github.com/starryfire/desi_engineer/internal/blog"
 	"github.com/starryfire/desi_engineer/internal/componentutil"
 	"github.com/starryfire/desi_engineer/internal/projectmiddleware"
 	"github.com/starryfire/desi_engineer/internal/proxy"
@@ -73,7 +73,7 @@ func serve(host string, port int) {
 		}),
 	)
 
-	cms.AppendRoutes(r)
+	blog.AppendRoutes(r)
 
 	if projectconfig.ENV == projectconstant.ENV_DEV {
 		// Simply reloads the web browser page Xs after the server is started

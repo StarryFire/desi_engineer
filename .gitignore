@@ -27,8 +27,11 @@ deployment/secrets/*/*
 # ignore contents of all the direct subfolders of deployment/services/**/data/ (except .gitkeep)
 deployment/services/**/data/*/**
 
+# auto-generated files/folders
 # ignore everything inside assets/**/prod/ (except .gitkeep)
 assets/**/prod/**
+
+*_templ.go
 
 # Never ignore .gitkeep no matter where it is in the hierarchy
 !.gitkeep

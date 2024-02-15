@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/starryfire/desi_engineer/internal/cms/internal/util"
-	"github.com/starryfire/desi_engineer/internal/cms/internal/view"
+	"github.com/starryfire/desi_engineer/internal/blog/internal/util"
+	"github.com/starryfire/desi_engineer/internal/blog/internal/view"
 	"github.com/starryfire/desi_engineer/internal/component"
 	"github.com/starryfire/desi_engineer/internal/componentutil"
 	"github.com/starryfire/desi_engineer/internal/datatype"

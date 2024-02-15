@@ -5,7 +5,7 @@ import "github.com/starryfire/desi_engineer/config/projectconstant"
 import "github.com/starryfire/desi_engineer/internal/templutil"
 import "fmt"
 import "github.com/starryfire/desi_engineer/internal/util"
-import "github.com/starryfire/desi_engineer/config/cmsconfig"
+import "github.com/starryfire/desi_engineer/config/blogconfig"
 
 type HomePageProps struct {
 	HomeMainContentProps
@@ -71,6 +71,6 @@ templ HomePage(props HomePageProps) {
 	@layout.Base(layout.BaseProps{
 		Main: HomeMainContent(props.HomeMainContentProps),
 		Header: layout.Header(),
-		ExtraMetaTags: HomeMetaTags(cmsconfig.HOME_PAGE_TITLE, cmsconfig.HOME_PAGE_DESCRIPTION),
+		ExtraMetaTags: HomeMetaTags(blogconfig.HOME_PAGE_TITLE, blogconfig.HOME_PAGE_DESCRIPTION),
 	})
 }

@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/starryfire/desi_engineer/config/cmsconfig"
-	"github.com/starryfire/desi_engineer/internal/cms/internal/util"
+	"github.com/starryfire/desi_engineer/config/blogconfig"
+	"github.com/starryfire/desi_engineer/internal/blog/internal/util"
 	"github.com/starryfire/desi_engineer/internal/datatype"
 	"github.com/starryfire/desi_engineer/internal/imageutil"
 )
@@ -28,7 +28,7 @@ func ServeSocialMediaPostImage(ctx echo.Context) error {
 
 	title := ""
 	if req.Slug == "" {
-		title = cmsconfig.HOME_PAGE_TITLE
+		title = blogconfig.HOME_PAGE_TITLE
 	} else {
 		record, err := util.GetArticleRecord(ctx, datatype.ArticleSlug(req.Slug))
 		if err != nil {

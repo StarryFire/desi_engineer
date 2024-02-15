@@ -1,4 +1,4 @@
-package cmsconfig
+package blogconfig
 
 import (
 	_ "embed"

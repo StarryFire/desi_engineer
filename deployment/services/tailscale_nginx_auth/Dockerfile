@@ -9,7 +9,7 @@ RUN tar -xvf v1.58.2.tar.gz
 RUN cd tailscale-1.58.2/cmd/ && go install ./mkpkg
 RUN cd tailscale-1.58.2/cmd/nginx-auth/ && ./mkdeb.sh
 
-# TODO: Make this platform agnostic like the cms container image
+# TODO: Make this platform agnostic like the blog container image
 RUN if [ "$(uname --machine)" = "$PLATFORM_LINUX_ARM64" ]; then \
     cp /root/tailscale-1.58.2/cmd/nginx-auth/tailscale-nginx-auth-0.1.3-arm64.rpm /root/tailscale-1.58.2/cmd/nginx-auth/tailscale-nginx-auth.rpm; \
     echo "file copied for $PLATFORM_LINUX_ARM64"; \

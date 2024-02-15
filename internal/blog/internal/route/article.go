@@ -3,7 +3,7 @@ package route
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/starryfire/desi_engineer/config/projectconstant"
-	"github.com/starryfire/desi_engineer/internal/cms/internal/controller"
+	"github.com/starryfire/desi_engineer/internal/blog/internal/controller"
 )
 
 func AppendArticleRoutes(r *echo.Group) {

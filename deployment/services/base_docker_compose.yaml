@@ -2,25 +2,25 @@ version: "3"
 name: desi_engineer
 
 services:
-  cms:
+  blog:
     environment:
       - PUBLIC_VIRTUAL_HOST=blog.desiengineer.dev
       - VIRTUAL_PORT=3000
       - VIRTUAL_PATH=/
       - LETSENCRYPT_HOST=blog.desiengineer.dev
       - LETSENCRYPT_RESTART_CONTAINER=true
-    container_name: cms
-    image: desiengineer/cms:latest
+    container_name: blog
+    image: desiengineer/blog:latest
     build:
       context: ../../
-      dockerfile: ./deployment/services/app/cms/Dockerfile
+      dockerfile: ./deployment/services/app/blog/Dockerfile
       args:
         ENV: prod
         TARGET_PLATFORM: linux/arm64
     volumes:
       # Always mount directories rather than files in docker-compose because otherwise changes to files on host won't reflect in the container
       # this has something to do with how different os/editors/etc. make changes to files: https://github.com/moby/moby/issues/15793#issuecomment-135411504
-      - ../secrets/cms/:/root/deployment/secrets/cms/:ro
+      - ../secrets/blog/:/root/deployment/secrets/blog/:ro
     networks:
       - private-1
     healthcheck:

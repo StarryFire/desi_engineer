@@ -1,10 +1,10 @@
-package cms
+package blog
 
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/starryfire/desi_engineer/config/projectconstant"
-	"github.com/starryfire/desi_engineer/internal/cms/internal/controller"
-	"github.com/starryfire/desi_engineer/internal/cms/internal/route"
+	"github.com/starryfire/desi_engineer/internal/blog/internal/controller"
+	"github.com/starryfire/desi_engineer/internal/blog/internal/route"
 )
 
 func AppendRoutes(r *echo.Echo) {

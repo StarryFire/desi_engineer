@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	"github.com/starryfire/desi_engineer/config/cmsconfig"
+	"github.com/starryfire/desi_engineer/config/blogconfig"
 	"github.com/starryfire/desi_engineer/config/projectconfig"
 	"github.com/starryfire/desi_engineer/config/projectconstant"
 	"github.com/starryfire/desi_engineer/internal/datatype"
@@ -20,7 +20,7 @@ func GetArticleFilePath(article datatype.ArticleSlug) string {
 }
 
 func GetArticleRecords(ctx echo.Context) (datatype.ArticleRecords, error) {
-	return yamlutil.UnmarshalYamlString[datatype.ArticleRecords](ctx, cmsconfig.ARTICLES_LIST)
+	return yamlutil.UnmarshalYamlString[datatype.ArticleRecords](ctx, blogconfig.ARTICLES_LIST)
 }
 
 func GetArticleRecord(ctx echo.Context, slug datatype.ArticleSlug) (datatype.ArticleRecord, error) {
