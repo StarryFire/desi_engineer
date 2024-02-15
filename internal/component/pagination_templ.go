@@ -11,7 +11,6 @@ import "io"
 import "bytes"
 
 import "strconv"
-import "github.com/starryfire/desi_engineer/assets/icon"
 import "github.com/starryfire/desi_engineer/internal/viewutil"
 import "github.com/starryfire/desi_engineer/internal/templutil"
 import "fmt"
@@ -69,7 +68,7 @@ func Pagination(props PaginationProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = icon.ChevronLeft(icon.ChevronLeftProps{
+			templ_7745c5c3_Err = ChevronLeft(ChevronLeftProps{
 				Class: "w-2",
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -121,7 +120,7 @@ func Pagination(props PaginationProps) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(index))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/component/pagination.templ`, Line: 38, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/component/pagination.templ`, Line: 37, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -161,7 +160,7 @@ func Pagination(props PaginationProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = icon.ChevronRight(icon.ChevronRightProps{
+			templ_7745c5c3_Err = ChevronRight(ChevronRightProps{
 				Class: "w-2",
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

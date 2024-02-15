@@ -13,10 +13,6 @@ templ ArticleSEOMetaTags(title string, description string, slug datatype.Article
 	<title>{ title }</title>
 	<meta name="title" content={ description }/>
 	<meta name="description" content={ description }/>
-	<link
-		href={ util.GetFullURL(templutil.GetEchoReverseURL(ctx, projectconstant.ARTICLE_PAGE_ROUTE_NAME, slug.URLSlug())) }
-		rel="canonical"
-	/>
 }
 
 templ ArticleSocialMediaMetaTags(title string, description string, slug datatype.ArticleSlug) {

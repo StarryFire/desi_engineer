@@ -9,10 +9,12 @@ import (
 
 // SECURITY: Do not expose the whole assets directory as
 // that might expose files that should not be exposed
-func AppendStaticRoutes(r *echo.Group) {
-	r.Static("/font", "assets/font")
-	r.Static("/sprite", "assets/sprite")
+func AppendStaticRoutes(g *echo.Group) {
+	// /font => /font*
+	g.Static("/font", "assets/font")
+	g.Static("/sprite", "assets/sprite")
+	g.Static("/icon", "assets/icon")
 
-	r.Static(fmt.Sprintf("/%s/js", projectconfig.VERSION), fmt.Sprintf("assets/js/%s", projectconfig.ENV))
-	r.Static(fmt.Sprintf("/%s/css", projectconfig.VERSION), fmt.Sprintf("assets/css/%s", projectconfig.ENV))
+	g.Static(fmt.Sprintf("/%s/js", projectconfig.VERSION), fmt.Sprintf("assets/js/%s", projectconfig.ENV))
+	g.Static(fmt.Sprintf("/%s/css", projectconfig.VERSION), fmt.Sprintf("assets/css/%s", projectconfig.ENV))
 }

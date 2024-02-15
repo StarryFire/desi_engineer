@@ -4,6 +4,28 @@ import "github.com/starryfire/desi_engineer/config/projectconfig"
 import "github.com/starryfire/desi_engineer/config/projectconstant"
 import "fmt"
 
+templ BaseSEOMetaTags() {
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<meta content="Kartik Sharma" name="author"/>
+	<meta name="robots" content="index, follow"/>
+	<!-- TODO: Add structured data for the website
+	<script type="application/ld+json">
+	{
+	"@context": "https://schema.org",
+	"@type": "WebPage",
+	"url": "http://www.example.com/page",
+	"name": "Example Page",
+	"description": "This is an example page."
+	}
+	</script>
+	-->
+	<!--
+	TODO: Automatically generate the content of this file, tells crawlers about all the urls hosted on the site
+	<link href="/sitemap-index.xml" rel="sitemap"/>
+	-->
+}
+
 type BaseProps struct {
 	Header        templ.Component
 	Main          templ.Component
@@ -15,27 +37,7 @@ templ Base(props BaseProps) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
-			<!-- SEO Tags -->
-			<meta charset="utf-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<meta content="Kartik Sharma" name="author"/>
-			<meta name="robots" content="index, follow"/>
-			<!-- TODO: Add structured data for the website
-			<script type="application/ld+json">
-			{
-			"@context": "https://schema.org",
-			"@type": "WebPage",
-			"url": "http://www.example.com/page",
-			"name": "Example Page",
-			"description": "This is an example page."
-			}
-			</script>
-			-->
-			<!--
-			TODO: Automatically generate the content of this file, tells crawlers about all the urls hosted on the site
-			<link href="/sitemap-index.xml" rel="sitemap"/>
-			-->
-			<!-- SEO Tags end -->
+			@BaseSEOMetaTags()
 			<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 			<!-- sets the browser theme on mobile browsers like safari, default is #2a2c37, javascript then changes this to match the website's background color  -->
 			<meta content="#2a2c37" name="theme-color"/>

@@ -1,7 +1,6 @@
 package component
 
 import "strconv"
-import "github.com/starryfire/desi_engineer/assets/icon"
 import "github.com/starryfire/desi_engineer/internal/viewutil"
 import "github.com/starryfire/desi_engineer/internal/templutil"
 import "fmt"
@@ -23,7 +22,7 @@ templ Pagination(props PaginationProps) {
 				"border-[1px]", "border-c-neutral-text", "rounded", "hover:border-c-primary-text",
 				"text-c-neutral-text", "hover:bg-c-primary-text" }
 			>
-				@icon.ChevronLeft(icon.ChevronLeftProps{
+				@ChevronLeft(ChevronLeftProps{
 					Class: "w-2",
 				})
 			</a>
@@ -46,7 +45,7 @@ templ Pagination(props PaginationProps) {
 				"border-[1px]", "border-c-neutral-text", "rounded", "hover:border-c-primary-text",
 				"text-c-neutral-text", "hover:bg-c-primary-text" }
 			>
-				@icon.ChevronRight(icon.ChevronRightProps{
+				@ChevronRight(ChevronRightProps{
 					Class: "w-2",
 				})
 			</a>

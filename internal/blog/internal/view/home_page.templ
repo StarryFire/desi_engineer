@@ -15,10 +15,6 @@ templ HomeSEOMetaTags(title string, description string, ) {
 	<title>{ title }</title>
 	<meta name="title" content={ description }/>
 	<meta name="description" content={ description }/>
-	<link
-		href={ util.GetFullURL(templutil.GetEchoReverseURL(ctx, projectconstant.HOME_PAGE_ROUTE_NAME)) }
-		rel="canonical"
-	/>
 }
 
 templ HomeSocialMediaMetaTags(title string, description string) {

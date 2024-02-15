@@ -7,6 +7,9 @@ import (
 )
 
 func AppendArticleRoutes(r *echo.Group) {
-	articlePageRoute := r.GET("/:slug", controller.ServeArticlePage)
+	articlePageRoute := r.GET("", controller.ServeArticlePage)
 	articlePageRoute.Name = projectconstant.ARTICLE_PAGE_ROUTE_NAME
+
+	SocialMediaPostImageRoute := r.GET("/social-media-post-image", controller.ServeSocialMediaPostImage)
+	SocialMediaPostImageRoute.Name = projectconstant.SOCIAL_MEDIA_POST_IMAGE_ROUTE_NAME
 }

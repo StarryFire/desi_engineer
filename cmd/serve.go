@@ -18,7 +18,6 @@ package cmd
 import (
 	"fmt"
 	stdLog "log"
-	"net/http"
 	"os"
 	"time"
 
@@ -65,15 +64,7 @@ func serve(host string, port int) {
 		Output: r.Logger.Output(), // for showing colored output
 	}))
 
-	// Remove all trailing slashes..ensures that /hello/ redirects to /hello
-	// required for avoiding duplication of content which adversely affects SEO
-	r.Use(
-		middleware.RemoveTrailingSlashWithConfig(middleware.TrailingSlashConfig{
-			RedirectCode: http.StatusPermanentRedirect,
-		}),
-	)
-
-	blog.AppendRoutes(r)
+	blog.Serve(r)
 
 	if projectconfig.ENV == projectconstant.ENV_DEV {
 		// Simply reloads the web browser page Xs after the server is started
