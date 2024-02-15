@@ -175,6 +175,10 @@ do_volume_mount() {
 do_volume_ls() {
     docker volume ls
 }
+# prints out size of each volume and the number of containers each volume is linked to
+do_volume_sizes() {
+    docker system df -v | sed -n '/VOLUME NAME/,/^ *$/p'
+}
 
 do_rm_volume() {
     if [ $# -ne 1 ]; then
