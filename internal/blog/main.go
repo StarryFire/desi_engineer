@@ -23,7 +23,7 @@ func AppendRoutes(r *echo.Echo) {
 	staticGroup := r.Group("/static")
 	route.AppendStaticRoutes(staticGroup)
 
-	HealthCheckRoute := r.GET("/health", controller.GetHealth)
+	HealthCheckRoute := r.GET("/api/health", controller.GetHealth)
 	HealthCheckRoute.Name = projectconstant.HEALTH_CHECK_ROUTE_NAME
 
 	articleGroup := r.Group("/post")

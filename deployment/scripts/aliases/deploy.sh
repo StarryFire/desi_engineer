@@ -24,11 +24,11 @@ deploy() {
         echo_err "[remote changes merged.]"
 
         # make sure this script is run with "set -e" flag set, otherwise the script won't stop at "git pull origin main" when local changes are detected, and the following will reset any local changes
-        # removes any folders/files that are now ignored by the updated .gitignore file
+        # removes any uncommitted changes, required to remove any files/folders that were ignored before but not now due to changes in .gitignore
         git add .
         files_and_folders_to_remove=$(git status --porcelain | awk '{print $2}')
         if [ "$files_and_folders_to_remove" != "" ]; then
-            echo_err -e "[removing the following ignored files/folders]\n$files_and_folders_to_remove"
+            echo_err -e "[removing uncommitted changes in the following files/folders]\n$files_and_folders_to_remove"
             git reset --hard
             echo_err "[removed]"
         fi
