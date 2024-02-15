@@ -51,31 +51,31 @@ do_run() {
 }
 
 # Run this to copy data from host to volume or from volume to volume
-# Example: do_volume_cp ./deployment/services/proxy/nginx/vhost.d private_nginx_vhostd 
+# Example: do_volume_cp ./deployment/services/proxy/nginx/vhost.d private_nginx_vhostd
 do_volume_cp() {
     readarray -d ':' -t from < <(printf "%s" $1)
     source_resource="${from[0]}" # volume or directory on host
-    source_path="/from" # absolute path to source inside source_resource
+    source_path="/from"          # absolute path to source inside source_resource
     if [ ${#from[@]} -eq 2 ]; then
-        source_path+="${from[1]}";
+        source_path+="${from[1]}"
     elif [ ${#from[@]} -eq 1 ]; then
-        source_path+='/.';
+        source_path+='/.'
     else
-        exit 1;
+        exit 1
     fi
 
     readarray -d ':' -t to < <(printf "%s" $2)
-    destination_resource="${to[0]}"  # volume or directory on host
-    destination_path="/to" # absolute path to destination inside destination_resource
+    destination_resource="${to[0]}" # volume or directory on host
+    destination_path="/to"          # absolute path to destination inside destination_resource
     if [ ${#to[@]} -eq 2 ]; then
-        destination_path+="${to[1]}";
+        destination_path+="${to[1]}"
     elif [ ${#to[@]} -eq 1 ]; then
-        destination_path+='';
+        destination_path+=''
     else
-        exit 1;
+        exit 1
     fi
-    
-    destination_parentdir="$(dirname $destination_path)";
+
+    destination_parentdir="$(dirname $destination_path)"
     if [ "$destination_parentdir" == "/" ]; then
         destination_parentdir="/to"
     fi
@@ -89,7 +89,7 @@ do_volume_cp() {
 
     set -x
     docker run --name volume-copy-utility --rm -v $source_resource:/from -v $destination_resource:/to \
-    busybox sh -c "$cmd"
+        busybox sh -c "$cmd"
     set +x
 }
 
@@ -97,27 +97,27 @@ do_volume_cp() {
 do_volume_rsync() {
     readarray -d ':' -t from < <(printf "%s" $1)
     source_resource="${from[0]}" # volume or directory on host
-    source_path="/from" # absolute path to source inside source_resource
+    source_path="/from"          # absolute path to source inside source_resource
     if [ ${#from[@]} -eq 2 ]; then
-        source_path+="${from[1]}";
+        source_path+="${from[1]}"
     elif [ ${#from[@]} -eq 1 ]; then
-        source_path+='/.';
+        source_path+='/.'
     else
-        exit 1;
+        exit 1
     fi
 
     readarray -d ':' -t to < <(printf "%s" $2)
-    destination_resource="${to[0]}"  # volume or directory on host
-    destination_path="/to" # absolute path to destination inside destination_resource
+    destination_resource="${to[0]}" # volume or directory on host
+    destination_path="/to"          # absolute path to destination inside destination_resource
     if [ ${#to[@]} -eq 2 ]; then
-        destination_path+="${to[1]}";
+        destination_path+="${to[1]}"
     elif [ ${#to[@]} -eq 1 ]; then
-        destination_path+='';
+        destination_path+=''
     else
-        exit 1;
+        exit 1
     fi
-    
-    destination_parentdir="$(dirname $destination_path)";
+
+    destination_parentdir="$(dirname $destination_path)"
     if [ "$destination_parentdir" == "/" ]; then
         destination_parentdir="/to"
     fi
@@ -137,7 +137,7 @@ do_volume_rsync() {
 
     set -x
     docker run --name volume-copy-utility --rm -v $source_resource:/from -v $destination_resource:/to \
-    busybox sh -c "$cmd"
+        busybox sh -c "$cmd"
     set +x
 }
 
@@ -147,11 +147,11 @@ do_volume_rm() {
     resource="${resource[0]}" # volume or directory on host
     resource_path='/resource' # absolute path to the file/directory inside resource
     if [ ${#resource[@]} -eq 2 ]; then
-        resource_path+="${resource[1]}";
+        resource_path+="${resource[1]}"
     elif [ ${#resource[@]} -eq 1 ]; then
         resource_path+='/*'
     else
-        exit 1;
+        exit 1
     fi
     docker run --name volume-rm-utility --rm -v $resource:/resource busybox sh -c "rm -rf $resource_path"
 }
@@ -173,7 +173,7 @@ do_volume_mount() {
     docker run --name volume-mount-utility --rm -it -v $1:/$1 -w /$1 busybox sh
 }
 do_volume_ls() {
-    docker volume ls
+    docker volume ls --format '{{ json . }}' | jq -c
 }
 # prints out size of each volume and the number of containers each volume is linked to
 do_volume_sizes() {
@@ -195,7 +195,7 @@ do_enter() {
     do_run --entrypoint="/bin/sh" -it $1
 }
 
-# Works with both running and stopped containers 
+# Works with both running and stopped containers
 # do_view_file private-nginx /etc/nginx/conf.d/default.conf
 do_view_file() {
     if [ $# -ne 2 ]; then

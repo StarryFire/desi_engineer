@@ -39,7 +39,6 @@ dc_debug_up() {
     _post_up
 }
 
-
 dc_refresh() {
     dc_up $@ --force-recreate
 }
@@ -60,6 +59,12 @@ dc_down_up() {
 dc_logs() {
     dc logs $@ -f
 }
+# will print json logs only and filter out all other invalid logs
+dc_logs_json() {
+    dc_logs --no-log-prefix --tail 1 -f $@ | grep '^{' --line-buffered | jq -R 'try fromjson catch .' -c
+    # or dc_logs --no-log-prefix -f $@ | grep '^{' | jq -R '. as $line | try (fromjson) catch $line' -c
+}
+
 dc_error_logs() {
     dc_logs $@ 1>/dev/null
 }
@@ -71,7 +76,6 @@ dc_refresh_logs() {
     dc_refresh $@
     dc_logs $@
 }
-
 
 dc_exec() {
     dc exec $@
@@ -98,9 +102,8 @@ dc_show_nginx_upstream_requests() {
     dc_exec private-nginx apt-get install netcat-openbsd
 
     # Run netcat
-    dc_exec private-nginx nc -kl 6677 > /dev/stdout
+    dc_exec private-nginx nc -kl 6677 >/dev/stdout
 }
-
 
 ################################################# PRIVATE ##############################################################################################
 
@@ -118,8 +121,14 @@ _post_up() {
 }
 
 _refresh_nginx_config_files() {
-    dc_exec public-docker-gen docker-gen -notify-sighup public-nginx /etc/docker-gen/templates/default.conf.dtmpl /etc/nginx/conf.d/default.conf
-    dc_exec private-docker-gen docker-gen -notify-sighup private-nginx /etc/docker-gen/templates/default.conf.dtmpl /etc/nginx/conf.d/default.conf
+    # In both cases, we are explicitly reloading nginx configs as docker-gen's -notify-sighup nginx option only reloads nginx when default.conf changes
+    # but in our cases there are other files under configs/* that might change on code pull and we want to reload nginx in those cases as well
+
+    dc_exec public-docker-gen docker-gen /etc/docker-gen/templates/default.conf.dtmpl /etc/nginx/conf.d/default.conf
+    dc_exec public-nginx nginx -s reload # or /etc/init.d/nginx reload
+
+    dc_exec private-docker-gen docker-gen /etc/docker-gen/templates/default.conf.dtmpl /etc/nginx/conf.d/default.conf
+    dc_exec private-nginx nginx -s reload # or /etc/init.d/nginx reload
 }
 
 # WARNING: Do not call before ensuring that the required volumes are created

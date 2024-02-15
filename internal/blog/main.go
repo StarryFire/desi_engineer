@@ -11,11 +11,6 @@ import (
 )
 
 func Serve(r *echo.Echo) {
-	/*
-		If multiple path matches are found, only the first matched (based on the internally built radix tree)
-		route i.e. set of path,handler,middleware,etc.  will be executed.
-	*/
-
 	fsGroup := r.Group("")
 	appendFSRoutes(fsGroup)
 
@@ -31,6 +26,11 @@ func appendFSRoutes(g *echo.Group) {
 	// uncomment this once you build the sitemap.xml
 	// g.File("/sitemap.xml", "assets/sitemap/sitemap.xml")
 
+	/*
+		If multiple routes in the inbuilt radix tree match the requested url, only the first matched
+		route and its middlewares will be executed.
+		Due to this, /favicon.svg will match this route but /favicon.svg/ will match the /:slug route
+	*/
 	g.File("/favicon.svg", "assets/favicon/favicon.svg")
 
 	staticGroup := g.Group("/static")
