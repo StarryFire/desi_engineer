@@ -12,6 +12,8 @@ services:
       - "/sys:/sys:ro"
       - "/var/lib/docker:/var/lib/docker:ro"
       - "/dev/disk:/dev/disk:ro"
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     networks:
       - private-1
     devices:
@@ -20,14 +22,15 @@ services:
   node-exporter:
     container_name: node-exporter
     image: prom/node-exporter
+    volumes:
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
+      #   - "/:/host:ro,rslave"
     networks:
       - private-1
     # network_mode: host
     # pid: host
     # command:
     #   - "--path.rootfs=/host"
-    # volumes:
-    #   - "/:/host:ro,rslave"
 
   prometheus:
     container_name: prometheus
@@ -38,6 +41,8 @@ services:
       - ./monitoring_exporters/prometheus/data/prometheus:/prometheus
 
       - ./monitoring_exporters/prometheus/config.yaml:/etc/prometheus/config.yaml:ro
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     networks:
       - private-1
     labels:
@@ -55,6 +60,8 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       # TODO: Mark as :ro and check if it works
       - /var/run/docker.sock:/var/run/docker.sock
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     networks:
       - private-1
     labels:

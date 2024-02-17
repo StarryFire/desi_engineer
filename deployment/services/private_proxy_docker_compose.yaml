@@ -25,6 +25,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/configs:/etc/nginx/configs
       - ./nginx/njs:/etc/nginx/njs
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     # this causes tailscale and nginx to share the same network stack, with tailscale on top of nginx
     # this essentially means that nginx container is running inside tailscale container from a network's perspective
     network_mode: service:tailscale
@@ -46,6 +48,8 @@ services:
     volumes:
       - ./nginx/private/templates:/etc/docker-gen/templates:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     depends_on:
       - private-nginx
     networks:
@@ -60,7 +64,7 @@ services:
   # However, even if grafana gets exposed to the internet, nginx internal /auth will block any attempts to access it with a 401 since the request is not
   # coming via tailscale.
   #
-  # Ref: 
+  # Ref:
   # - https://www.reddit.com/r/Tailscale/comments/15f8cbc/comment/kaozlvy/?utm_source=share&utm_medium=web2x&context=3
   # - https://hub.docker.com/r/tailscale/tailscale (bottom, FAQ section)
   # There are two modes in tailscale:
@@ -99,6 +103,8 @@ services:
       - tailscale_lib:/var/lib/tailscale
 
       - /dev/net/tun:/dev/net/tun # needed for kernel networking mode
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     networks:
       - private-1
 
@@ -118,6 +124,8 @@ services:
 
       - tailscale_run:/var/run/tailscale # contains hard link to actual tailscale socket
       - tailscale_tmp:/tmp # contains the actual tailscale socket
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     networks:
       - private-1
     depends_on:

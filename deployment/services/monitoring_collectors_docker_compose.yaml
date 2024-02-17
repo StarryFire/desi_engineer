@@ -36,6 +36,8 @@ services:
       - ./monitoring_collectors/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring_collectors/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./monitoring_collectors/grafana/config.ini:/etc/grafana/grafana.ini:ro
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     networks:
       - private-1
     labels:
@@ -48,6 +50,8 @@ services:
     command: -config.file=/mnt/config/config.yaml
     volumes:
       - ./monitoring_collectors/loki/config.yaml:/mnt/config/config.yaml:ro
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     networks:
       - private-1
     labels:
@@ -64,5 +68,7 @@ services:
     volumes:
       - uptime_kuma_data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock:ro # needed to monitor containers
+
+      - /etc/localtime:/etc/localtime:ro # sync timezone with host
     networks:
       - private-1

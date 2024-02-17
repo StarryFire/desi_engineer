@@ -1,40 +1,32 @@
 ---
 - name: Configure server
   hosts: servers
+  gather_facts: true
   # vars_files: "{{ secrets_path }}/ansible/tailscale.yaml"
   tasks:
-    # - name: Start nginx service
-    #   become: true
-    #   ansible.builtin.service:
-    #     name: nginx
-    #     state: started
-    #     enabled: true
-
-    # - name: Create certbot certificates and auto-renew cronjob
-    #   become: true
-    #   ansible.builtin.command:
-    #     # Add --staging for testing
-    #     cmd: >
-    #       certbot certonly -n
-    #       --nginx --email desiengineer.dev@gmail.com
-    #       -d desiengineer.dev -d www.desiengineer.dev
-    #       --no-eff-email --agree-tos
-    #     creates: /etc/letsencrypt/live/desiengineer.dev/fullchain.pem
-    # - name: Setup tailscale
-    #   become: true
-    #   block:
-    #     - name: Start tailscale service
-    #       ansible.builtin.service:
-    #         name: tailscaled
-    #         state: started
-    #         enabled: true
-    #     # Make sure to disable key expiry for the server: https://tailscale.com/kb/1028/key-expiry
-    #     # Make sure to remove in case you disconnect from tailscale: /var/lib/tailscale/tailscaled.state
-    #     - name: Connect to tailscale
-    #       # no_log: true
-    #       ansible.builtin.command:
-    #         cmd: tailscale up --authkey {{ tailscale_auth_key }} --hostname {{ tailscale_hostname }}
-    #         creates: /var/lib/tailscale/tailscaled.state
+    # To get system time run: timedatectl
+    # To get hardware time run: sudo hwclock --show
+    - name: Configure time settings
+      become: true
+      block:
+        - name: Set local timezone
+          community.general.timezone:
+            name: Asia/Kolkata
+            hwclock: UTC # hardware clock should always be in UTC
+        - name: Start time synchronization service (chronyd)
+          when: ansible_distribution == "Amazon"
+          ansible.builtin.service:
+            name: chronyd
+            state: started
+            enabled: true
+        - name: Start time synchronization service (ntpd)
+          when: ansible_distribution != "Amazon"
+          ansible.builtin.service:
+            name: ntpd
+            state: started
+            enabled: true
+        - name: Reboot the machine for the changes to take effect
+          ansible.builtin.reboot:
 
     - name: Setup docker
       become: true
@@ -73,28 +65,17 @@
     - name: Setup crontab
       become: true
       block:
+        - name: Create log directory
+          ansible.builtin.file:
+            path: /var/log/cron
+            state: directory
+            mode: u=rwx,g=rx,o=
+            owner: ec2-user
         - name: Start crontab service
           ansible.builtin.service:
             name: crond
             state: started
             enabled: true
-
-    # does git pull to fetch the latest code or clones the repo if it doesn't exist
-    # - name: Setup codebase
-    #   block:
-    #     - name: Clone codebase # noqa: command-instead-of-module
-    #       ansible.builtin.command:
-    #         cmd: git clone git@github.com:StarryFire/desi_engineer.git ~/desi_engineer
-    #         creates: ~/desi_engineer
-    #     - name: Pull latest code # noqa: command-instead-of-module
-    #       ansible.builtin.command:
-    #         cmd: git pull origin main
-    #         chdir: ~/desi_engineer
-    #       register: command_output
-    #       changed_when: command_output.stdout_lines[-1] == "Changes detected in the remote repository..."
-    #     - name: Debug
-    #       ansible.builtin.debug:
-    #         msg: "{{ command_output }}"
 
     # simply clone the repo
     - name: Setup codebase
@@ -115,7 +96,11 @@
           ansible.builtin.cron:
             name: Deploy latest code on every reboot
             special_time: reboot
-            job: "cd ~/desi_engineer && deploy -f true"
+            # ref: https://stackoverflow.com/questions/52200878/crontab-journalctl-extra-messages
+            job: >
+              cd ~/desi_engineer
+              && make run cmd="deploy -f" 2>&1
+              | tee >(while read line; do echo "[$(date -Iseconds)] $line" >> /var/log/cron/reboot-cron.log; done;) >(systemd-cat -t reboot-cron)
 
     - name: Set ~/.bash_custom
       ansible.builtin.copy:
@@ -141,6 +126,39 @@
         path: ~/.bash_profile
         line: "source ~/.bash_login"
         insertafter: EOF
+#  - name: Start nginx service
+#     become: true
+#     ansible.builtin.service:
+#       name: nginx
+#       state: started
+#       enabled: true
+
+#   - name: Create certbot certificates and auto-renew cronjob
+#     become: true
+#     ansible.builtin.command:
+#       # Add --staging for testing
+#       cmd: >
+#         certbot certonly -n
+#         --nginx --email desiengineer.dev@gmail.com
+#         -d desiengineer.dev -d www.desiengineer.dev
+#         --no-eff-email --agree-tos
+#       creates: /etc/letsencrypt/live/desiengineer.dev/fullchain.pem
+#   - name: Setup tailscale
+#     become: true
+#     block:
+#       - name: Start tailscale service
+#         ansible.builtin.service:
+#           name: tailscaled
+#           state: started
+#           enabled: true
+#       # Make sure to disable key expiry for the server: https://tailscale.com/kb/1028/key-expiry
+#       # Make sure to remove in case you disconnect from tailscale: /var/lib/tailscale/tailscaled.state
+#       - name: Connect to tailscale
+#         # no_log: true
+#         ansible.builtin.command:
+#           cmd: tailscale up --authkey {{ tailscale_auth_key }} --hostname {{ tailscale_hostname }}
+#           creates: /var/lib/tailscale/tailscaled.state
+
 # - name: Setup ansible
 #   hosts: servers
 #   tasks:
