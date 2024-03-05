@@ -8,7 +8,7 @@ dc_debug() {
     docker -D compose $DOCKER_COMPOSE_FILES $@
 }
 
-# only creates the containers
+# only creates the containers without starting them and their corresponding volumes
 dc_create() {
     dc up $@ --no-start --no-deps -d --remove-orphans
     _post_create

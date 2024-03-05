@@ -6,8 +6,8 @@ join() {
     list=("$@")
     result=${list[0]}
     for i in ${list[@]:1}; do
-        result+=$separator;
-        result+=$i;
+        result+=$separator
+        result+=$i
     done
     echo $result
 }
@@ -23,4 +23,10 @@ test_statement() {
 
 print_literal_string() {
     printf '%q\n' "$1"
+}
+
+# copy remote server file
+# scp aws-desi-engineer-1:/tmp/uptime_kuma_data.tar.gz /tmp/uptime_kuma_data.tar.gz
+copy_remote_file() {
+    scp $1 $2
 }

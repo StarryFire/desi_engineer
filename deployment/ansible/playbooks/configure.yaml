@@ -4,6 +4,16 @@
   gather_facts: true
   # vars_files: "{{ secrets_path }}/ansible/tailscale.yaml"
   tasks:
+    - name: Configure time synchronization settings
+      become: true
+      when: ansible_distribution == "Amazon"
+      block:
+        - name: Start chronyd service
+          ansible.builtin.service:
+            name: chronyd
+            state: started
+            enabled: true
+
     # To get system time run: timedatectl
     # To get hardware time run: sudo hwclock --show
     - name: Configure time settings
@@ -13,18 +23,6 @@
           community.general.timezone:
             name: Asia/Kolkata
             hwclock: UTC # hardware clock should always be in UTC
-        - name: Start time synchronization service (chronyd)
-          when: ansible_distribution == "Amazon"
-          ansible.builtin.service:
-            name: chronyd
-            state: started
-            enabled: true
-        - name: Start time synchronization service (ntpd)
-          when: ansible_distribution != "Amazon"
-          ansible.builtin.service:
-            name: ntpd
-            state: started
-            enabled: true
         - name: Reboot the machine for the changes to take effect
           ansible.builtin.reboot:
 
@@ -65,12 +63,12 @@
     - name: Setup crontab
       become: true
       block:
-        - name: Create log directory
+        - name: Ensure crontab log directory exists
           ansible.builtin.file:
-            path: /var/log/cron
+            path: /var/log/crontab
             state: directory
             mode: u=rwx,g=rx,o=
-            owner: ec2-user
+            owner: "{{ ansible_user }}"
         - name: Start crontab service
           ansible.builtin.service:
             name: crond
@@ -97,10 +95,11 @@
             name: Deploy latest code on every reboot
             special_time: reboot
             # ref: https://stackoverflow.com/questions/52200878/crontab-journalctl-extra-messages
+            # sends cron logs to /var/log/crontab/reboot-cron.log and systemd journal
             job: >
               cd ~/desi_engineer
               && make run cmd="deploy -f" 2>&1
-              | tee >(while read line; do echo "[$(date -Iseconds)] $line" >> /var/log/cron/reboot-cron.log; done;) >(systemd-cat -t reboot-cron)
+              | tee >(while read line; do echo "[$(date -Iseconds)] $line" >> /var/log/crontab/reboot-cron.log; done;) >(systemd-cat -t reboot-cron)
 
     - name: Set ~/.bash_custom
       ansible.builtin.copy:
@@ -111,7 +110,7 @@
     - name: Set ~/.bash_login
       ansible.builtin.copy:
         src: "{{ configs_path }}/ansible_push/.bash_login"
-        dest: ~/.profile
+        dest: ~/.bash_login
         mode: u=rw,g=r,o=r
         force: true
 

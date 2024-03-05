@@ -5,5 +5,5 @@
   ansible.builtin.import_playbook: ./configure.yaml
 - name: Deploy
   vars:
-    force: true
+    flags: "--generate-or-renew-certs -f"
   ansible.builtin.import_playbook: ./deploy.yaml

@@ -1,20 +1,60 @@
 ---
+# Make sure to run ansible on CentOS Stream 9
 - name: Install dependencies
   hosts: servers
   become: true
   gather_facts: true
   tasks:
+    - name: Uninstall podman based docker
+      ansible.builtin.dnf:
+        name:
+          - docker
+          - docker-client
+          - docker-client-latest
+          - docker-common
+          - docker-latest
+          - docker-latest-logrotate
+          - docker-logrotate
+          - docker-engine
+          - podman
+          - runc
+        state: absent
+        update_cache: true
+
+    - name: Install dnf
+      ansible.builtin.yum:
+        name: dnf
+        state: present
+        update_cache: true
+
     - name: Update & upgrade all packages # noqa package-latest
       ansible.builtin.dnf:
         name: "*"
         state: latest
         update_cache: true
 
+    - name: Add docker repository
+      block:
+        - name: Install yum-utils if missing
+          ansible.builtin.yum:
+            name: yum-utils
+            state: present
+        - name: Add the docker repository
+          ansible.builtin.command:
+            cmd: yum-config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+            creates: /etc/yum.repos.d/docker-ce.repo
+
     - name: Install dnf dependencies
       ansible.builtin.dnf:
         name:
           - make
-          - docker
+
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+
           - git
           - cronie
           # - tailscale
@@ -31,34 +71,26 @@
         state: absent
         autoremove: true
 
-    - name: Ensure ~/.docker/cli-plugins directory exists
-      ansible.builtin.file:
-        path: ~/.docker/cli-plugins
-        state: directory
-        mode: "700"
-
-    - name: Install docker-compose
-      block:
-        - name: Install x86_64 based docker-compose
-          when: ansible_architecture == "x86_64"
-          ansible.builtin.get_url:
-            url: "{{ item.url }}"
-            dest: "{{ item.dest }}"
-            mode: "{{ item.mode }}"
-          loop:
-            - url: "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-x86_64"
-              dest: ~/.docker/cli-plugins/docker-compose
-              mode: "+x"
-        - name: Install aarch64 based docker-compose
-          when: ansible_architecture == "aarch64"
-          ansible.builtin.get_url:
-            url: "{{ item.url }}"
-            dest: "{{ item.dest }}"
-            mode: "{{ item.mode }}"
-          loop:
-            - url: "https://github.com/docker/compose/releases/download/v2.24.3/docker-compose-linux-aarch64"
-              dest: ~/.docker/cli-plugins/docker-compose
-              mode: "+x"
+    # - name: Install docker-compose
+    #   become: false
+    #   block:
+    #     - name: Ensure ~/.docker/cli-plugins directory exists
+    #       ansible.builtin.file:
+    #         path: ~/.docker/cli-plugins
+    #         state: directory
+    #         mode: "700"
+    #     - name: Install x86_64 based docker-compose
+    #       when: ansible_architecture == "x86_64"
+    #       ansible.builtin.get_url:
+    #         url: "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-linux-x86_64"
+    #         dest: ~/.docker/cli-plugins/docker-compose
+    #         mode: "+x"
+    #     - name: Install aarch64 based docker-compose
+    #       when: ansible_architecture == "aarch64"
+    #       ansible.builtin.get_url:
+    #         url: "https://github.com/docker/compose/releases/download/v2.24.3/docker-compose-linux-aarch64"
+    #         dest: ~/.docker/cli-plugins/docker-compose
+    #         mode: "+x"
 
     # - name: Install tailscale
     #   block:
@@ -67,7 +99,7 @@
     #         name: yum-utils
     #         state: present
 
-    #     # You can remote the repo by running: sudo rm -f /etc/yum.repos.d/your_repo.repo
+    #     # You can remove the repo by running: sudo rm -f /etc/yum.repos.d/your_repo.repo
     #     # Just copy the contents of the repo file into this configuration:  https://pkgs.tailscale.com/stable/amazon-linux/2023/tailscale.repo
     #     # To list all the installed repos in yum: yum repolist
     #     - name: Add the tailscale repository

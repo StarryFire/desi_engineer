@@ -180,6 +180,27 @@ do_volume_sizes() {
     docker system df -v | sed -n '/VOLUME NAME/,/^ *$/p'
 }
 
+# do_volume_backup volume_to_backup destination_full_filename
+# do_volume_backup uptime_kuma_data /tmp/uptime_kuma_data.tar.gz
+do_volume_backup() {
+    touch $2
+    docker run --rm \
+        -v $1:/backup-volume \
+        -v $2:/backup.tar.gz \
+        busybox \
+        tar -zcvf /backup/backup.tar.gz -C /backup-volume/ .
+}
+
+# do_volume_restore backup_full_filename volume_to_restore
+# do_volume_backup /tmp/uptime_kuma_data.tar.gz uptime_kuma_data
+do_volume_restore() {
+    docker run --rm \
+        -v $1:/restore-volume \
+        -v $2:/restore.tar.gz \
+        busybox \
+        tar -zxvf /restore.tar.gz -C /restore-volume
+}
+
 do_rm_volume() {
     if [ $# -ne 1 ]; then
         exit 1
