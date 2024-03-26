@@ -32,8 +32,6 @@ services:
       - ./nginx/configs:/etc/nginx/configs
 
       - /etc/localtime:/etc/localtime:ro # sync timezone with host
-    depends_on:
-      - blog
     networks:
       - public-1
       - private-1

@@ -2,43 +2,78 @@ version: "3"
 name: desi_engineer
 
 services:
-  blog:
-    environment:
-      - PUBLIC_VIRTUAL_HOST=blog.desiengineer.dev
-      - VIRTUAL_PORT=3000
-      - VIRTUAL_PATH=/
-      - LETSENCRYPT_HOST=blog.desiengineer.dev
-      - LETSENCRYPT_RESTART_CONTAINER=true
-    container_name: blog
-    image: desiengineer/blog:latest
-    build:
-      context: ../../
-      dockerfile: ./deployment/services/app/blog/Dockerfile
-      args:
-        ENV: prod
-        TARGET_PLATFORM: linux/arm64
-    volumes:
-      # Always mount directories rather than files in docker-compose because otherwise changes to files on host won't reflect in the container
-      # this has something to do with how different os/editors/etc. make changes to files: https://github.com/moby/moby/issues/15793#issuecomment-135411504
-      - ../secrets/blog/:/root/deployment/secrets/blog/:ro
+  # blog:
+  #   environment:
+  #     - PUBLIC_VIRTUAL_HOST=blog.desiengineer.dev
+  #     - VIRTUAL_PORT=3000
+  #     - VIRTUAL_PATH=/
+  #     - LETSENCRYPT_HOST=blog.desiengineer.dev
+  #     - LETSENCRYPT_RESTART_CONTAINER=true
+  #   container_name: blog
+  #   image: desiengineer/blog:latest
+  #   build:
+  #     context: ../../
+  #     dockerfile: ./deployment/services/app/blog/Dockerfile
+  #     args:
+  #       ENV: prod
+  #       TARGET_PLATFORM: linux/arm64
+  #   volumes:
+  #     # Always mount directories rather than files in docker-compose because otherwise changes to files on host won't reflect in the container
+  #     # this has something to do with how different os/editors/etc. make changes to files: https://github.com/moby/moby/issues/15793#issuecomment-135411504
+  #     - ../secrets/blog/:/root/deployment/secrets/blog/:ro
 
-      - /etc/localtime:/etc/localtime:ro # sync timezone with host
+  #     - /etc/localtime:/etc/localtime:ro # sync timezone with host
+  #   networks:
+  #     - private-1
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD",
+  #         "wget",
+  #         "--no-verbose",
+  #         "--tries=1",
+  #         "--spider",
+  #         "http://localhost:3000/api/health",
+  #       ]
+  #     interval: 10s
+  #     timeout: 2s
+  #     retries: 3
+  #     start_period: 0s
+  #   labels:
+  #     logging: "promtail"
+  #     logging_jobname: "docker_compose_logs"
+
+  ghost-blog:
+    env_file:
+      # see https://ghost.org/docs/config/#configuration-options
+      - ../secrets/docker/ghost.txt
+    environment:
+      PUBLIC_VIRTUAL_HOST: blog.desiengineer.dev
+      VIRTUAL_PORT: 2368
+      VIRTUAL_PATH: /
+      LETSENCRYPT_HOST: blog.desiengineer.dev
+      LETSENCRYPT_RESTART_CONTAINER: true
+    container_name: ghost-blog
+    image: ghost:5-alpine
+    restart: always
+    # ports:
+    #   - 8080:2368
+    volumes:
+      - ghost_content:/var/lib/ghost/content
     networks:
       - private-1
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:3000/api/health",
-        ]
-      interval: 10s
-      timeout: 2s
-      retries: 3
-      start_period: 0s
-    labels:
-      logging: "promtail"
-      logging_jobname: "docker_compose_logs"
+    depends_on:
+      - mysql-db
+
+  mysql-db:
+    env_file:
+      - ../secrets/docker/mysql.txt
+    container_name: mysql-db
+    image: mysql:8.3
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # ports:
+    #     - "3311:3306"
+    networks:
+      - private-1

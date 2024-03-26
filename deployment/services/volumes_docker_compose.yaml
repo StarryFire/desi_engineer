@@ -1,5 +1,13 @@
 version: "3"
 volumes:
+  ghost_content:
+    name: ghost_content
+    driver: local
+
+  mysql_data:
+    name: mysql_data
+    driver: local
+
   uptime_kuma_data:
     name: uptime_kuma_data
     driver: local
@@ -47,6 +55,6 @@ volumes:
   acme_companion_etc:
     name: acme_companion_etc
     driver: local
-  
+
   lets_encrypt_etc:
     external: true

@@ -30,8 +30,6 @@ services:
     # this causes tailscale and nginx to share the same network stack, with tailscale on top of nginx
     # this essentially means that nginx container is running inside tailscale container from a network's perspective
     network_mode: service:tailscale
-    depends_on:
-      - grafana
     labels:
       logging: "promtail"
       logging_jobname: "docker_compose_logs"
