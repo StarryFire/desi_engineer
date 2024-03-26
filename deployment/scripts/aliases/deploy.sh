@@ -222,7 +222,7 @@ _deploy_helper() {
 }
 
 _deploy_parse_args() {
-    LONGOPTS=generate-or-renew-certs,fresh
+    LONGOPTS=generate-or-renew-certs,force
     SHORTOPTS=f
     PARSED=$(getopt --options=$SHORTOPTS --longoptions=$LONGOPTS --name "$0" -- "$@")
     eval set -- "$PARSED"

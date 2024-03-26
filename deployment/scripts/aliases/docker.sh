@@ -205,7 +205,7 @@ do_rm_volume() {
     if [ $# -ne 1 ]; then
         exit 1
     fi
-    docker volume rm $1
+    docker volume rm $@
 }
 
 # creates a new container and runs a shell in it

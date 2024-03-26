@@ -80,6 +80,14 @@ dc_refresh_logs() {
 dc_exec() {
     dc exec $@
 }
+
+# can run multiline commands
+# dc_cmd public-nginx sh -c "'echo \"hello\" && echo \"bye\"'"
+dc_cmd() {
+    # eval is needed in order to run multiline command wrapped in single quotes
+    eval "docker compose $DOCKER_COMPOSE_FILES exec $@"
+}
+
 # Only works with running containers
 # dc_view_file private-nginx /etc/nginx/conf.d/default.conf
 dc_view_file() {

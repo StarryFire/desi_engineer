@@ -30,8 +30,6 @@ services:
     # this causes tailscale and nginx to share the same network stack, with tailscale on top of nginx
     # this essentially means that nginx container is running inside tailscale container from a network's perspective
     network_mode: service:tailscale
-    depends_on:
-      - grafana
     labels:
       logging: "promtail"
       logging_jobname: "docker_compose_logs"
@@ -68,7 +66,7 @@ services:
   # - https://www.reddit.com/r/Tailscale/comments/15f8cbc/comment/kaozlvy/?utm_source=share&utm_medium=web2x&context=3
   # - https://hub.docker.com/r/tailscale/tailscale (bottom, FAQ section)
   # There are two modes in tailscale:
-  # Userspace Networking: In this mode, the tailscale container can accept incoming connections but cannot initiate outgoing connections to other tailscale hosts (via other processes)
+  # Userspace Networking: In this mode, the tailscale container can accept incoming connections and can initiate outgoing connections to other tailscale hosts but only via tailscale processes
   # for eg. only "tailscale ping 100.127.254.120" would work and not "ping 100.127.254.120" i.e. only pings initiated via the tailscale process to other tailscale hosts would work.
   # Also MagicDNS resolution won't work either in the above mode.
   # Kernel Networking: In this mode, the above problems are solved.

@@ -8,21 +8,34 @@ location ^~ /.well-known/acme-challenge/ {
 }
 #####################################################################################################################################################################
 
-#####################################################################################################################################################################
+# ################################################################## GO BLOG  ##########################################################################################
+# # NOTE: When using nginx-proxy/nginx-proxy, the upstream name of the container is: ${VIRTUAL_HOST_HASH}-${VIRTUAL_PATH_HASH}
+# # HASH can be calculated using: echo -n "/" | sha1sum | awk '{ print $1 }'
+# # Here,
+# # blog.desiengineer.dev = e8f6824e5e463840e8c5e3c9012f8e104bff25c4
+# # / = 42099b4af021e53fd8fd4e056c2568d7c2e3ffa8
+# #####################################################################################################################################################################
+
+# # Media: images, icons, video, audio, HTC, fonts, css, js
+# location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|ttf|css|js)$ {
+#     expires 365d; # This is equivalent to adding max-age in cache-control like this: Cache-Control "..., max-age=86400"
+#     add_header Cache-Control "public";
+#     proxy_pass http://e8f6824e5e463840e8c5e3c9012f8e104bff25c4-42099b4af021e53fd8fd4e056c2568d7c2e3ffa8;
+# }
+# #####################################################################################################################################################################
+# location / {
+#     proxy_pass http://e8f6824e5e463840e8c5e3c9012f8e104bff25c4-42099b4af021e53fd8fd4e056c2568d7c2e3ffa8;
+#     access_log /var/log/nginx/access.log standard_log_format;
+# }
+########################################################### GHOST BLOG ##################################################################################################
 # NOTE: When using nginx-proxy/nginx-proxy, the upstream name of the container is: ${VIRTUAL_HOST_HASH}-${VIRTUAL_PATH_HASH}
 # HASH can be calculated using: echo -n "/" | sha1sum | awk '{ print $1 }'
 # Here,
 # blog.desiengineer.dev = e8f6824e5e463840e8c5e3c9012f8e104bff25c4
 # / = 42099b4af021e53fd8fd4e056c2568d7c2e3ffa8
-#####################################################################################################################################################################
-
-# Media: images, icons, video, audio, HTC, fonts, css, js
-location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|ttf|css|js)$ {
-    expires 365d; # This is equivalent to adding max-age in cache-control like this: Cache-Control "..., max-age=86400"
-    add_header Cache-Control "public";
-    proxy_pass http://e8f6824e5e463840e8c5e3c9012f8e104bff25c4-42099b4af021e53fd8fd4e056c2568d7c2e3ffa8;
-}
-#####################################################################################################################################################################
 location / {
     proxy_pass http://e8f6824e5e463840e8c5e3c9012f8e104bff25c4-42099b4af021e53fd8fd4e056c2568d7c2e3ffa8;
+    access_log /var/log/nginx/access.log standard_log_format;
 }
+
+client_max_body_size 50m;
