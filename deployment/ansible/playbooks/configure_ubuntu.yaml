@@ -2,11 +2,9 @@
 - name: Configure server
   hosts: servers
   gather_facts: true
-  # vars_files: "{{ secrets_path }}/ansible/tailscale.yaml"
   tasks:
     - name: Configure time synchronization settings
       become: true
-      when: ansible_distribution == "Amazon"
       block:
         - name: Start chronyd service
           ansible.builtin.service:
@@ -71,7 +69,7 @@
             owner: "{{ ansible_user }}"
         - name: Start crontab service
           ansible.builtin.service:
-            name: crond
+            name: cron # crond in CentOS
             state: started
             enabled: true
 
@@ -120,54 +118,8 @@
         line: "source ~/.bashrc_custom"
         insertafter: EOF
 
-    - name: Append entry point for .bash_login_custom to .bash_profile
+    - name: Append entry point for .bash_login_custom to .profile
       ansible.builtin.lineinfile:
-        path: ~/.bash_profile
+        path: ~/.profile
         line: "source ~/.bash_login_custom"
         insertafter: EOF
-#  - name: Start nginx service
-#     become: true
-#     ansible.builtin.service:
-#       name: nginx
-#       state: started
-#       enabled: true
-
-#   - name: Create certbot certificates and auto-renew cronjob
-#     become: true
-#     ansible.builtin.command:
-#       # Add --staging for testing
-#       cmd: >
-#         certbot certonly -n
-#         --nginx --email desiengineer.dev@gmail.com
-#         -d desiengineer.dev -d www.desiengineer.dev
-#         --no-eff-email --agree-tos
-#       creates: /etc/letsencrypt/live/desiengineer.dev/fullchain.pem
-#   - name: Setup tailscale
-#     become: true
-#     block:
-#       - name: Start tailscale service
-#         ansible.builtin.service:
-#           name: tailscaled
-#           state: started
-#           enabled: true
-#       # Make sure to disable key expiry for the server: https://tailscale.com/kb/1028/key-expiry
-#       # Make sure to remove in case you disconnect from tailscale: /var/lib/tailscale/tailscaled.state
-#       - name: Connect to tailscale
-#         # no_log: true
-#         ansible.builtin.command:
-#           cmd: tailscale up --authkey {{ tailscale_auth_key }} --hostname {{ tailscale_hostname }}
-#           creates: /var/lib/tailscale/tailscaled.state
-
-# - name: Setup ansible
-#   hosts: servers
-#   tasks:
-#     - name: Setup config
-#       ansible.builtin.copy:
-#         src: "{{ configs_path }}/ansible_pull/ansible.cfg"
-#         dest: "~/.ansible.cfg"
-#         mode: "600"
-#     - name: Setup reboot cronjob
-#       ansible.builtin.cron:
-#         name: Runs ansible-pull on every reboot
-#         special_time: reboot
-#         job: "{{ deploy_command }}"

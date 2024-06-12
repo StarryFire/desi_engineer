@@ -31,6 +31,8 @@ deployment/services/**/data/*/**
 # ignore everything inside assets/**/prod/ (except .gitkeep)
 assets/**/prod/**
 
+deployment/ansible/inventory.ini
+
 *_templ.go
 
 # Never ignore .gitkeep no matter where it is in the hierarchy

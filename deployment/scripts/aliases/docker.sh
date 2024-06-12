@@ -188,7 +188,7 @@ do_volume_backup() {
         -v $1:/backup-volume \
         -v $2:/backup.tar.gz \
         busybox \
-        tar -zcvf /backup/backup.tar.gz -C /backup-volume/ .
+        tar -zcvf /backup.tar.gz -C /backup-volume/ .
 }
 
 # do_volume_restore backup_full_filename volume_to_restore

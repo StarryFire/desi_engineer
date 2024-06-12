@@ -3,7 +3,6 @@
 # Remove a docker network: docker network rm network_name
 # List networks: docker network list
 
-version: "3"
 networks:
   public-1:
     name: public-1

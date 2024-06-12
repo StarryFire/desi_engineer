@@ -1,0 +1,25 @@
+---
+- name: Deploy
+  hosts: servers
+  serial:
+    - 1
+    - 2
+    - 25%
+    - 50%
+    - 100%
+
+  tasks:
+    - name: Deploy
+      block:
+        - name: Copy secrets
+          ansible.builtin.include_tasks: ./copy_secrets.yaml
+        - name: 'Running deploy script: make run cmd="deploy {{ flags | default('''') }}"'
+          # runs the script that is local to the node and not the controller
+          ansible.builtin.command:
+            cmd: 'make run cmd="deploy {{ flags | default('''') }}"'
+            chdir: ~/desi_engineer
+          register: cmd_output
+          changed_when: cmd_output.stderr_lines[-1] != "[no changes in the remote repository.]"
+        - name: Show output
+          ansible.builtin.debug:
+            var: cmd_output.stderr_lines

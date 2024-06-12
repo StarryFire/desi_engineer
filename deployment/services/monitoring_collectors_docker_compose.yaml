@@ -1,4 +1,3 @@
-version: "3"
 name: desi_engineer
 
 # References:
@@ -30,7 +29,7 @@ services:
     image: grafana/grafana:latest
     user: "1000" # id of the user on the host that owns the host volume directories, resolves permission issues when container tries to write in the mounted volumes
     volumes:
-      - ./monitoring_collectors/grafana/data/var_lib_grafana:/var/lib/grafana # stores dashboards, users, etc.
+      - var_lib_grafana:/var/lib/grafana # stores dashboards, users, etc.
       - ./monitoring_collectors/grafana/dashboards:/var/lib/grafana/dashboards:ro # creates /var/lib/grafana/dashboards folder in the container
 
       - ./monitoring_collectors/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro

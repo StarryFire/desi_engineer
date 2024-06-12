@@ -30,3 +30,9 @@ print_literal_string() {
 copy_remote_file() {
     scp $1 $2
 }
+
+# copy remote server folder
+# scp aws-desi-engineer-1:/tmp /tmp/backup
+copy_remote_folder() {
+    scp -r $1 $2
+}

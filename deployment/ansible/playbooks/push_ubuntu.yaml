@@ -1,0 +1,9 @@
+---
+- name: Install
+  ansible.builtin.import_playbook: ./install_ubuntu.yaml
+- name: Configure
+  ansible.builtin.import_playbook: ./configure_ubuntu.yaml
+- name: Deploy
+  vars:
+    flags: "--generate-or-renew-certs -f"
+  ansible.builtin.import_playbook: ./deploy_ubuntu.yaml

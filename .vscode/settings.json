@@ -13,5 +13,8 @@
   "ansible.python.interpreterPath": "/Users/Kartik/.asdf/shims/python3",
   "files.associations": {
     "*.dtmpl": "nginx"
+  },
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json": "file:///Users/Kartik/Desktop/Business/projects/desi_engineer/deployment/ansible/playbooks/deploy.yaml"
   }
 }

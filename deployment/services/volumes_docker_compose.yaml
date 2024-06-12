@@ -1,4 +1,3 @@
-version: "3"
 volumes:
   ghost_content:
     name: ghost_content
@@ -10,6 +9,10 @@ volumes:
 
   uptime_kuma_data:
     name: uptime_kuma_data
+    driver: local
+
+  var_lib_grafana:
+    name: var_lib_grafana
     driver: local
 
   private_nginx_confd:

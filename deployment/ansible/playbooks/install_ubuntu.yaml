@@ -1,0 +1,45 @@
+- name: Install dependencies
+  hosts: servers
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Uninstall podman if present
+      ansible.builtin.apt:
+        name:
+          - docker
+          - docker-client
+          - docker-client-latest
+          - docker-common
+          - docker-latest
+          - docker-latest-logrotate
+          - docker-logrotate
+          - docker-engine
+          - podman
+          - runc
+        state: absent
+        update_cache: true
+
+    - name: Update & upgrade all packages # noqa package-latest
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Install dependencies
+      ansible.builtin.apt:
+        name:
+          - make
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+          - git
+          - cron # cronie in CentOS
+          - chrony
+        state: present
+        update_cache: true
+    - name: Clean unneeded dependencies
+      ansible.builtin.apt:
+        state: absent
+        autoremove: true
